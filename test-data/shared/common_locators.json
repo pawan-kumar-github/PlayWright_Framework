@@ -1,0 +1,80 @@
+{
+  "_meta": {
+    "description": "Shared locators for components common across all lifecycles (header, alerts, modals, pagination)"
+  },
+  "Header": {
+    "logoLink": {
+      "name": "Application Logo",
+      "primary": { "type": "xpath", "value": "//header//img[@id='appLogo']" },
+      "fallbacks": [
+        { "type": "xpath", "value": "//header//a[@class='logo']", "description": "by-class" },
+        { "type": "css", "value": "header .logo", "description": "by-css" }
+      ]
+    },
+    "userMenuTrigger": {
+      "name": "User Menu Trigger",
+      "primary": { "type": "xpath", "value": "//button[@id='userMenuBtn']" },
+      "fallbacks": [
+        { "type": "xpath", "value": "//button[@aria-label='User menu']", "description": "by-aria" },
+        { "type": "css", "value": ".user-menu-trigger", "description": "by-css" }
+      ]
+    }
+  },
+  "Modals": {
+    "confirmButton": {
+      "name": "Modal Confirm Button",
+      "primary": { "type": "xpath", "value": "//div[@role='dialog']//button[@id='confirmBtn']" },
+      "fallbacks": [
+        { "type": "xpath", "value": "//div[@role='dialog']//button[text()='Confirm']", "description": "by-text-in-dialog" },
+        { "type": "xpath", "value": "//div[@role='dialog']//button[text()='OK']", "description": "by-ok-in-dialog" }
+      ]
+    },
+    "cancelButton": {
+      "name": "Modal Cancel Button",
+      "primary": { "type": "xpath", "value": "//div[@role='dialog']//button[@id='cancelBtn']" },
+      "fallbacks": [
+        { "type": "xpath", "value": "//div[@role='dialog']//button[text()='Cancel']", "description": "by-text-in-dialog" }
+      ]
+    },
+    "closeButton": {
+      "name": "Modal Close (X) Button",
+      "primary": { "type": "xpath", "value": "//div[@role='dialog']//button[@aria-label='Close']" },
+      "fallbacks": [
+        { "type": "css", "value": ".modal .close", "description": "by-css" }
+      ]
+    }
+  },
+  "Alerts": {
+    "successAlert": {
+      "name": "Success Alert",
+      "primary": { "type": "xpath", "value": "//div[contains(@class,'alert-success')]" },
+      "fallbacks": [
+        { "type": "xpath", "value": "//*[@role='alert'][contains(@class,'success')]", "description": "by-role-success" }
+      ]
+    },
+    "errorAlert": {
+      "name": "Error Alert",
+      "primary": { "type": "xpath", "value": "//div[contains(@class,'alert-error')]" },
+      "fallbacks": [
+        { "type": "xpath", "value": "//*[@role='alert'][contains(@class,'error')]", "description": "by-role-error" },
+        { "type": "xpath", "value": "//*[@role='alert'][contains(@class,'danger')]", "description": "by-role-danger" }
+      ]
+    }
+  },
+  "Pagination": {
+    "nextButton": {
+      "name": "Pagination Next",
+      "primary": { "type": "xpath", "value": "//button[@aria-label='Next page']" },
+      "fallbacks": [
+        { "type": "text", "value": "Next", "description": "by-text" }
+      ]
+    },
+    "previousButton": {
+      "name": "Pagination Previous",
+      "primary": { "type": "xpath", "value": "//button[@aria-label='Previous page']" },
+      "fallbacks": [
+        { "type": "text", "value": "Previous", "description": "by-text" }
+      ]
+    }
+  }
+}

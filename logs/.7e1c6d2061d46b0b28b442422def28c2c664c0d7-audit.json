@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 30
+    },
+    "auditLog": "G:\\Projects\\PlayWright_Framework\\logs\\.7e1c6d2061d46b0b28b442422def28c2c664c0d7-audit.json",
+    "files": [
+        {
+            "date": 1775064374939,
+            "name": "G:\\Projects\\PlayWright_Framework\\logs\\error-2026-04-01.log",
+            "hash": "ad2dfc9c6f60c7c66ca63dfd655f48e2b08eca1a0403e8f91b12fa005d91c6b0"
+        },
+        {
+            "date": 1775068358721,
+            "name": "G:\\Projects\\PlayWright_Framework\\logs\\error-2026-04-02.log",
+            "hash": "029962698addd69ae650d13c795a5123a57c67f0ca6e453a3e46167ed7dea92d"
+        }
+    ],
+    "hashType": "sha256"
+}

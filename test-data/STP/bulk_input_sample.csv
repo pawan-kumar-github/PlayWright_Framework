@@ -1,0 +1,6 @@
+TCID,ITERATION,username,password,role,expectedDashboardTitle
+TC_LOGIN_001,4,user4@example.com,Pass@Test4,creator,STP Dashboard
+TC_LOGIN_001,5,user5@example.com,Pass@Test5,reviewer,STP Dashboard
+TC_LOGIN_001,6,user6@example.com,Pass@Test6,admin,STP Dashboard
+TC_LOGIN_001,7,user7@example.com,Pass@Test7,creator,STP Dashboard
+TC_LOGIN_001,8,user8@example.com,Pass@Test8,reviewer,STP Dashboard

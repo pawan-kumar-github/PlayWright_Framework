@@ -1,0 +1,53 @@
+{
+  "TC_OTDTC_LOGIN_001": {
+    "TCID": "TC_OTDTC_LOGIN_001",
+    "description": "Standard user login for OTDTC lifecycle",
+    "iterations": [
+      {
+        "ITERATION": 1,
+        "username": "otdtc_creator@example.com",
+        "password": "OTDTC@Test123",
+        "role": "creator"
+      },
+      {
+        "ITERATION": 2,
+        "username": "otdtc_reviewer@example.com",
+        "password": "Review@OTDTC456",
+        "role": "reviewer"
+      }
+    ],
+    "runtimeData": {}
+  },
+
+  "TC_OTDTC_001": {
+    "TCID": "TC_OTDTC_001",
+    "description": "Create a new OTDTC record",
+    "iterations": [
+      {
+        "ITERATION": 1,
+        "otdtcTitle": "OTDTC - Q2 Defect Closure",
+        "otdtcDescription": "Tracks defect closure activities for Q2.",
+        "priority": "Medium",
+        "assignee": "QA Lead",
+        "targetDate": "2026-05-30",
+        "category": "Defect",
+        "expectedSuccessMessage": "OTDTC created successfully"
+      }
+    ],
+    "runtimeData": {}
+  },
+
+  "TC_OTDTC_002": {
+    "TCID": "TC_OTDTC_002",
+    "description": "Review and approve OTDTC",
+    "iterations": [
+      {
+        "ITERATION": 1,
+        "reviewAction": "approve",
+        "reviewComment": "OTDTC meets all criteria.",
+        "expectedStatus": "Approved"
+      }
+    ],
+    "runtimeData": {}
+  }
+}

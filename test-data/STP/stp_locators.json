@@ -1,0 +1,63 @@
+{
+  "_meta": {
+    "lifecycle": "STP",
+    "description": "XPath locator registry for STP pages. primary is used first; fallbacks are tried in order by SelfHealingLocator.",
+    "format": "{ name, primary: {type, value}, fallbacks: [{type, value, description}] }"
+  },
+  "LoginPage": {
+    "usernameInput": {
+      "name": "Username Input",
+      "primary": { "type": "xpath", "value": "//input[@id='username']" },
+      "fallbacks": [
+        { "type": "placeholder", "value": "Enter username", "description": "by-placeholder" },
+        { "type": "label", "value": "Username", "description": "by-label" },
+        { "type": "css", "value": "input[name='username']", "description": "by-name-attr" }
+      ]
+    },
+    "passwordInput": {
+      "name": "Password Input",
+      "primary": { "type": "xpath", "value": "//input[@id='password']" },
+      "fallbacks": [
+        { "type": "placeholder", "value": "Enter password", "description": "by-placeholder" },
+        { "type": "css", "value": "input[type='password']", "description": "by-type" }
+      ]
+    },
+    "loginButton": {
+      "name": "Login Button",
+      "primary": { "type": "xpath", "value": "//button[@id='loginBtn']" },
+      "fallbacks": [
+        { "type": "role", "value": "button[Sign In]", "description": "by-role-name" },
+        { "type": "text", "value": "Sign In", "description": "by-text" },
+        { "type": "css", "value": "button[type='submit']", "description": "by-submit-type" }
+      ]
+    }
+  },
+  "DashboardPage": {
+    "createSTPButton": {
+      "name": "Create STP Button",
+      "primary": { "type": "xpath", "value": "//button[@id='createSTP']" },
+      "fallbacks": [
+        { "type": "text", "value": "Create STP", "description": "by-text" },
+        { "type": "role", "value": "button[Create STP]", "description": "by-role-name" }
+      ]
+    }
+  },
+  "CreateSTPPage": {
+    "titleInput": {
+      "name": "STP Title Input",
+      "primary": { "type": "xpath", "value": "//input[@id='stpTitle']" },
+      "fallbacks": [
+        { "type": "label", "value": "Title", "description": "by-label" },
+        { "type": "placeholder", "value": "Enter STP title", "description": "by-placeholder" }
+      ]
+    },
+    "submitButton": {
+      "name": "Submit STP Button",
+      "primary": { "type": "xpath", "value": "//button[@id='submitSTP']" },
+      "fallbacks": [
+        { "type": "text", "value": "Submit", "description": "by-text" },
+        { "type": "css", "value": "button[type='submit']", "description": "by-submit-type" }
+      ]
+    }
+  }
+}

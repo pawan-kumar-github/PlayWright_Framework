@@ -1,0 +1,7 @@
+[
+  { "TCID": "TC_LOGIN_001", "ITERATION": 4, "username": "user4@example.com", "password": "Pass@Test4", "role": "creator" },
+  { "TCID": "TC_LOGIN_001", "ITERATION": 5, "username": "user5@example.com", "password": "Pass@Test5", "role": "reviewer" },
+  { "TCID": "TC_LOGIN_001", "ITERATION": 6, "username": "user6@example.com", "password": "Pass@Test6", "role": "admin" },
+  { "TCID": "TC_STP_001",   "ITERATION": 3, "stpTitle": "Bulk STP Iteration 3", "priority": "High",   "assignee": "QA Team", "startDate": "2026-05-01", "endDate": "2026-05-31" },
+  { "TCID": "TC_STP_001",   "ITERATION": 4, "stpTitle": "Bulk STP Iteration 4", "priority": "Medium", "assignee": "Dev Team", "startDate": "2026-06-01", "endDate": "2026-06-30" }
+]

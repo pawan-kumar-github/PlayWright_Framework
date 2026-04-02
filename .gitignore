@@ -1,0 +1,28 @@
+node_modules/
+dist/
+
+# Test artifacts
+allure-results/
+allure-report/
+playwright-report/
+test-results/
+.auth/
+
+# Logs
+logs/*.log
+logs/*.gz
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Healing logs (optional — keep for audit trail on CI)
+# healing-logs/

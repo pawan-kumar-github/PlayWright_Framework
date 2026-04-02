@@ -1,0 +1,32 @@
+{
+  "TC_RT_LOGIN_001": {
+    "TCID": "TC_RT_LOGIN_001",
+    "description": "Standard user login for RT lifecycle",
+    "iterations": [
+      {
+        "ITERATION": 1,
+        "username": "rt_user@example.com",
+        "password": "RT@Test123",
+        "role": "creator"
+      }
+    ],
+    "runtimeData": {}
+  },
+
+  "TC_RT_001": {
+    "TCID": "TC_RT_001",
+    "description": "Create a new RT record",
+    "iterations": [
+      {
+        "ITERATION": 1,
+        "rtTitle": "RT - Regression Suite Q2",
+        "rtDescription": "Regression testing plan for Q2 release.",
+        "priority": "High",
+        "assignee": "Test Team",
+        "targetDate": "2026-06-01",
+        "expectedSuccessMessage": "RT created successfully"
+      }
+    ],
+    "runtimeData": {}
+  }
+}

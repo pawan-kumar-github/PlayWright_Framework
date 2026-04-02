@@ -1,0 +1,235 @@
+{
+  "TC_LOGIN_001": {
+    "TCID": "TC_LOGIN_001",
+    "description": "Standard user login for STP lifecycle",
+    "username": "stp_user@example.com",
+    "password": "STP@Test123",
+    "expectedDashboardTitle": "STP Dashboard",
+    "iterations": [
+      {
+        "ITERATION": 1,
+        "username": "user1",
+        "password": "STP@Test123",
+        "role": "creator"
+      },
+      {
+        "ITERATION": 2,
+        "username": "user2_updatedInOpen",
+        "password": "Review@Test456",
+        "role": "reviewer"
+      },
+      {
+        "ITERATION": 3,
+        "username": "user3",
+        "password": "Admin@Test789",
+        "role": "admin"
+      }
+    ],
+    "runtimeData": {
+      "username": "updatedUsername"
+    }
+  },
+  "TC_LOGIN_002": {
+    "TCID": "TC_LOGIN_002",
+    "description": "Login with invalid credentials - negative test",
+    "iterations": [
+      {
+        "ITERATION": 1,
+        "username": "invalid@example.com",
+        "password": "WrongPassword",
+        "expectedError": "Invalid username or password"
+      },
+      {
+        "ITERATION": 2,
+        "username": "",
+        "password": "SomePassword",
+        "expectedError": "Username is required"
+      },
+      {
+        "ITERATION": 3,
+        "username": "valid@example.com",
+        "password": "",
+        "expectedError": "Password is required"
+      }
+    ],
+    "runtimeData": {}
+  },
+  "TC_STP_001": {
+    "TCID": "TC_STP_001",
+    "description": "Create a new STP with all mandatory fields",
+    "priority": "High",
+    "category": "Development",
+    "assignee": "John Doe",
+    "iterations": [
+      {
+        "ITERATION": 1,
+        "stpTitle": "STP - Integration Testing Phase Q2",
+        "stpDescription": "This STP covers all integration testing activities for Q2 release.",
+        "priority": "High",
+        "assignee": "John Doe",
+        "startDate": "2026-04-15",
+        "endDate": "2026-05-15",
+        "category": "Development",
+        "expectedSuccessMessage": "STP created successfully"
+      },
+      {
+        "ITERATION": 2,
+        "stpTitle": "STP - Performance Testing Phase Q2",
+        "stpDescription": "Performance and load testing STP for Q2 release.",
+        "priority": "Critical",
+        "assignee": "Jane Smith",
+        "startDate": "2026-04-20",
+        "endDate": "2026-05-20",
+        "category": "Testing",
+        "expectedSuccessMessage": "STP created successfully"
+      }
+    ],
+    "runtimeData": {}
+  },
+  "TC_STP_002": {
+    "TCID": "TC_STP_002",
+    "description": "Create STP with optional fields and file attachment",
+    "iterations": [
+      {
+        "ITERATION": 1,
+        "stpTitle": "STP - Security Audit Q2",
+        "stpDescription": "Security audit and penetration testing STP.",
+        "priority": "Critical",
+        "assignee": "Security Team",
+        "startDate": "2026-04-10",
+        "endDate": "2026-04-30",
+        "category": "Security",
+        "attachmentFile": "test-data/STP/attachments/sample.pdf"
+      }
+    ],
+    "runtimeData": {}
+  },
+  "TC_STP_003": {
+    "TCID": "TC_STP_003",
+    "description": "Review and approve an existing STP",
+    "reviewComment": "Reviewed and approved. All criteria met.",
+    "iterations": [
+      {
+        "ITERATION": 1,
+        "stpNumberToReview": "",
+        "reviewAction": "approve",
+        "reviewComment": "STP meets all defined criteria. Approved for execution.",
+        "expectedStatus": "Approved"
+      },
+      {
+        "ITERATION": 2,
+        "stpNumberToReview": "",
+        "reviewAction": "reject",
+        "reviewComment": "STP does not meet quality criteria. Missing test coverage details.",
+        "expectedStatus": "Rejected"
+      }
+    ],
+    "runtimeData": {}
+  },
+  "TC_STP_004": {
+    "TCID": "TC_STP_004",
+    "description": "Search STP by various filter criteria",
+    "iterations": [
+      {
+        "ITERATION": 1,
+        "searchBy": "stpNumber",
+        "searchValue": "",
+        "expectedMinResults": 1
+      },
+      {
+        "ITERATION": 2,
+        "searchBy": "status",
+        "filterStatus": "Approved",
+        "expectedMinResults": 0
+      },
+      {
+        "ITERATION": 3,
+        "searchBy": "priority",
+        "filterPriority": "High",
+        "expectedMinResults": 0
+      }
+    ],
+    "runtimeData": {}
+  },
+  "TC_STP_005": {
+    "TCID": "TC_STP_005",
+    "description": "End-to-end STP lifecycle: create, review, approve",
+    "iterations": [
+      {
+        "ITERATION": 1,
+        "stpTitle": "E2E STP Lifecycle Test",
+        "stpDescription": "Full end-to-end lifecycle test for STP.",
+        "priority": "High",
+        "assignee": "QA Team",
+        "startDate": "2026-04-15",
+        "endDate": "2026-06-15",
+        "category": "E2E",
+        "reviewComment": "All criteria verified. Approved.",
+        "expectedFinalStatus": "Approved"
+      }
+    ],
+    "runtimeData": {}
+  },
+  "TC_INVOICE_001": {
+    "TCID": "TC_INVOICE_001",
+    "description": "Login and create multiple invoices in a loop using the same iteration data",
+    "iterations": [
+      {
+        "ITERATION": 1,
+        "username": "user1",
+        "password": "STP@Test123",
+        "role": "creator",
+        "invoiceTitle": "Invoice Q2-2026",
+        "invoiceAmount": 1500,
+        "invoiceClient": "Acme Corp",
+        "invoiceDueDate": "2026-05-31",
+        "invoiceCategory": "Services"
+      },
+      {
+        "ITERATION": 2,
+        "username": "user2",
+        "password": "STP@Test456",
+        "role": "reviewer",
+        "invoiceTitle": "Invoice Q3-2026",
+        "invoiceAmount": 2750,
+        "invoiceClient": "Globex Ltd",
+        "invoiceDueDate": "2026-06-30",
+        "invoiceCategory": "Consulting"
+      },
+      {
+        "ITERATION": 3,
+        "username": "user3",
+        "password": "STP@Test789",
+        "role": "admin",
+        "invoiceTitle": "Invoice Q4-2026",
+        "invoiceAmount": 5000,
+        "invoiceClient": "Initech Inc",
+        "invoiceDueDate": "2026-09-30",
+        "invoiceCategory": "Development"
+      },
+      {
+        "ITERATION": 4,
+        "username": "user4",
+        "password": "STP@Test101",
+        "role": "creator",
+        "invoiceTitle": "Invoice Annual-2026",
+        "invoiceAmount": 12000,
+        "invoiceClient": "Umbrella Corp",
+        "invoiceDueDate": "2026-12-31",
+        "invoiceCategory": "Retainer"
+      },
+      {
+        "ITERATION": 5,
+        "username": "user5",
+        "password": "STP@Test202",
+        "role": "reviewer",
+        "invoiceTitle": "Invoice Special-2026",
+        "invoiceAmount": 3300,
+        "invoiceClient": "Stark Industries",
+        "invoiceDueDate": "2026-07-15",
+        "invoiceCategory": "Support"
+      }
+    ],
+    "runtimeData": {}
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "playwright-ui-automation-framework",
+  "version": "1.0.0",
+  "description": "Enterprise Playwright UI Automation Framework with Self-Healing XPath, POM, and Lifecycle-based Test Data",
+  "author": "QA Automation Team",
+  "scripts": {
+    "test": "playwright test",
+    "test:stp": "playwright test tests/STP/",
+    "test:otdtc": "playwright test tests/OTDTC/",
+    "test:rt": "playwright test tests/RT/",
+    "test:chrome": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "allure:generate": "npx allure generate allure-results --clean -o allure-report",
+    "allure:open": "npx allure open allure-report",
+    "allure:serve": "npx allure serve allure-results",
+    "report:html": "playwright show-report playwright-report",
+    "install:browsers": "playwright install",
+    "lint": "eslint . --ext .ts",
+    "clean": "rimraf allure-results allure-report playwright-report test-results logs/*.log",
+    "bulk-load": "ts-node scripts/bulkLoadTestData.ts"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.44.0",
+    "allure-js-commons": "^3.0.3",
+    "allure-playwright": "^3.0.3",
+    "dotenv": "^16.4.5",
+    "winston": "^3.13.0",
+    "winston-daily-rotate-file": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "allure-commandline": "^2.38.1",
+    "rimraf": "^5.0.7",
+    "typescript": "^5.4.5"
+  }
+}
