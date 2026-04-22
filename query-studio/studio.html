@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>TestData Query Studio</title>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   TestData Query Studio  |  Standalone · No-server · Browser
+   ═══════════════════════════════════════════════════════════ */
+:root{
+  --bg:#1e1e2e;--surface:#27273a;--surface2:#313244;--surface3:#3b3b52;
+  --border:#45475a;--text:#cdd6f4;--sub:#a6adc8;--muted:#6c7086;
+  --accent:#cba6f7;--blue:#89b4fa;--green:#a6e3a1;--red:#f38ba8;
+  --yellow:#f9e2af;--orange:#fab387;--teal:#94e2d5;--pink:#f5c2e7;
+  --mono:'Cascadia Code','Fira Code','Consolas',monospace;
+  --ui:'Segoe UI',system-ui,sans-serif;
+  --sidebar:240px;--top:44px;--editor-h:210px;--r:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--ui);font-size:13px}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--sub)}
+
+/* ── Landing ─────────────────────────────────────────────── */
+#landing{height:100%;display:flex;align-items:center;justify-content:center}
+.land-box{text-align:center;max-width:440px;padding:40px}
+.land-hex{font-size:56px;color:var(--accent);display:block;margin-bottom:16px}
+.land-box h1{font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px}
+.land-box p{color:var(--sub);font-size:13px;line-height:1.6;margin-bottom:28px}
+.land-features{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px;margin-bottom:24px;text-align:left}
+.land-features li{list-style:none;padding:3px 0;font-size:12px;color:var(--sub)}
+.land-features li::before{content:"⬡ ";color:var(--accent)}
+.land-note{font-size:11px;color:var(--muted);margin-top:16px;line-height:1.5}
+.land-note code{color:var(--accent);font-family:var(--mono)}
+.no-fsa{background:var(--surface);border:1px solid var(--red);border-radius:var(--r);
+  padding:14px 18px;font-size:12px;color:var(--red);margin-top:16px;display:none}
+/* auto-load states */
+.land-state{display:none;flex-direction:column;align-items:center;gap:16px}
+.land-state.on{display:flex}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin-msg{font-size:13px;color:var(--sub)}
+.resume-folder{font-family:var(--mono);font-size:15px;color:var(--accent);font-weight:700;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:8px 20px;max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.resume-hint{font-size:11px;color:var(--muted);line-height:1.5}
+.btn-resume{padding:12px 32px;font-size:14px;font-weight:700;background:var(--accent);
+  color:#1e1e2e;border:none;border-radius:var(--r);cursor:pointer;letter-spacing:.02em}
+.btn-resume:hover{background:var(--pink)}
+.link-change{font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline;
+  background:none;border:none;font-family:var(--ui)}
+.link-change:hover{color:var(--sub)}
+
+/* ── Studio shell ────────────────────────────────────────── */
+#studio{height:100%;display:flex;flex-direction:column}
+
+/* ── Topbar ──────────────────────────────────────────────── */
+.topbar{height:var(--top);background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 14px;gap:12px;flex-shrink:0;z-index:200}
+.logo{display:flex;align-items:center;gap:8px;color:var(--accent);font-weight:700;font-size:14px}
+.logo-hex{font-size:20px}
+.ctx-badge{flex:1;text-align:center;font-family:var(--mono);font-size:11px;color:var(--sub)}
+.ctx-pill{background:var(--surface2);border:1px solid var(--border);border-radius:20px;
+  padding:3px 14px;display:inline-block;max-width:480px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top-actions{display:flex;gap:6px}
+
+/* ── Layout ──────────────────────────────────────────────── */
+.layout{display:flex;flex:1;overflow:hidden}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+.sidebar{width:var(--sidebar);min-width:160px;max-width:360px;background:var(--surface);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.sidebar-sec{display:flex;flex-direction:column;overflow:hidden}
+.sidebar-sec:first-child{flex:0 0 auto;max-height:45%;border-bottom:1px solid var(--border)}
+.sidebar-sec.schema-sec{flex:1;overflow:hidden}
+.schema-sec .s-body{flex:1;overflow-y:auto}
+.sec-title{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--muted);
+  padding:8px 12px 4px;text-transform:uppercase;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.sec-title .sec-sub{font-size:9px;font-weight:400;color:var(--accent);letter-spacing:0;
+  text-transform:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px}
+
+/* lifecycle tree */
+.lc-tree{overflow-y:auto;flex:1;padding-bottom:4px}
+.tree-msg{padding:10px 14px;font-size:11px;color:var(--muted)}
+.lc-row{display:flex;align-items:center;gap:7px;padding:5px 12px;font-size:10px;
+  font-weight:800;letter-spacing:.1em;color:var(--accent);text-transform:uppercase;
+  cursor:pointer;user-select:none}
+.lc-row:hover{background:var(--surface2)}
+.lc-arrow{font-size:8px;transition:transform .15s;display:inline-block}
+.lc-row.open .lc-arrow{transform:rotate(90deg)}
+.lc-files{display:none}
+.lc-files.open{display:block}
+.lc-badge{background:rgba(203,166,247,.12);color:var(--accent);border-radius:3px;
+  padding:0 5px;font-size:9px;font-weight:700;margin-left:auto}
+
+/* schema tree */
+.s-body{padding:4px 0 8px}
+.sc-lc{padding:2px 0}
+.sc-lc-hdr{display:flex;align-items:center;gap:6px;padding:5px 12px;cursor:pointer;
+  user-select:none;font-size:11px;font-weight:700;color:var(--blue)}
+.sc-lc-hdr:hover{background:var(--surface2)}
+.sc-arrow{font-size:8px;transition:transform .15s;display:inline-block}
+.sc-lc-hdr.open .sc-arrow{transform:rotate(90deg)}
+.sc-rowcount{margin-left:auto;font-size:10px;font-weight:400;color:var(--muted)}
+.sc-cols{display:none;padding:2px 0 2px 26px}
+.sc-cols.open{display:block}
+.sc-col{font-family:var(--mono);font-size:11px;color:var(--sub);padding:2px 8px;
+  cursor:pointer;border-radius:3px;transition:color .1s}
+.sc-col:hover{color:var(--text);background:var(--surface2)}
+.sc-col::before{content:"⬡ ";font-size:8px;color:var(--muted)}
+
+/* ── Resize handles ──────────────────────────────────────── */
+.v-resize{width:4px;background:transparent;cursor:col-resize;flex-shrink:0;transition:background .2s;z-index:10}
+.v-resize:hover,.v-resize.drag{background:var(--accent)}
+.h-resize{height:4px;background:transparent;cursor:row-resize;flex-shrink:0;transition:background .2s}
+.h-resize:hover,.h-resize.drag{background:var(--accent)}
+
+/* ── Main ────────────────────────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* ── Editor panel ────────────────────────────────────────── */
+.ed-panel{height:var(--editor-h);min-height:90px;display:flex;flex-direction:column;
+  flex-shrink:0;border-bottom:1px solid var(--border)}
+.ed-toolbar{height:36px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 10px;gap:8px;flex-shrink:0}
+.panel-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+.ed-actions{margin-left:auto;display:flex;align-items:center;gap:5px}
+.sel-ex{background:var(--surface2);border:1px solid var(--border);color:var(--sub);
+  border-radius:var(--r);padding:3px 6px;font-size:11px;font-family:var(--ui);cursor:pointer;outline:none;max-width:220px}
+.sel-ex:hover{border-color:var(--accent)}
+
+.ed-body{display:flex;flex:1;overflow:hidden;background:var(--bg)}
+.ed-gutter{width:42px;padding:10px 8px 10px 0;text-align:right;font-family:var(--mono);
+  font-size:12px;line-height:1.65;color:var(--border);border-right:1px solid var(--border);
+  flex-shrink:0;overflow:hidden;user-select:none;white-space:pre}
+.ed-code{flex:1;position:relative;overflow:hidden}
+/* ── Highlight layer (scrolls in sync with textarea) ─────── */
+.ed-hl-wrap{position:absolute;inset:0;overflow:auto;pointer-events:none;z-index:1;
+  scrollbar-width:none;-ms-overflow-style:none}
+.ed-hl-wrap::-webkit-scrollbar{display:none}
+.ed-hl{padding:10px 12px;font-family:var(--mono);font-size:12px;line-height:1.65;
+  white-space:pre;color:var(--text);margin:0;min-width:max-content;display:block;tab-size:2;-moz-tab-size:2}
+/* ── Textarea ────────────────────────────────────────────── */
+/* inset:0 already stretches to parent — no need for width/height:100%          */
+/* Scrollbar is hidden so it never reduces the content-area width and creates   */
+/* misalignment between the transparent textarea and the highlight overlay.     */
+.ed-ta{position:absolute;inset:0;background:transparent;
+  color:transparent;caret-color:var(--accent);border:none;outline:none;resize:none;
+  padding:10px 12px;font-family:var(--mono);font-size:12px;line-height:1.65;z-index:2;
+  overflow:auto;white-space:pre;tab-size:2;-moz-tab-size:2;
+  scrollbar-width:none;-ms-overflow-style:none}
+.ed-ta::-webkit-scrollbar{display:none}
+.ed-ta::selection{background:rgba(137,180,250,.35);color:transparent}
+/* ── Active line indicator ───────────────────────────────── */
+.ed-activeline{position:absolute;left:0;right:0;height:19.8px;
+  background:rgba(203,166,247,.09);pointer-events:none;z-index:0;
+  border-left:3px solid rgba(203,166,247,.55);display:none}
+/* ── Focus ring around editor body ──────────────────────── */
+.ed-panel:focus-within .ed-body{box-shadow:inset 0 0 0 1.5px rgba(203,166,247,.6)}
+/* ── Status bar ──────────────────────────────────────────── */
+.ed-status{height:22px;background:var(--surface);border-top:1px solid var(--border);
+  display:flex;align-items:center;padding:0 12px;font-size:10px;color:var(--sub);gap:10px;flex-shrink:0}
+.status-hint{margin-left:auto;color:var(--muted)}
+.ed-lc{font-family:var(--mono);font-size:10px;color:var(--muted);
+  padding:0 8px;border-left:1px solid var(--border);white-space:nowrap}
+.s-ok{color:var(--green)}.s-err{color:var(--red)}.s-mut{color:var(--accent)}.s-hint{color:var(--yellow)}
+/* ── High-contrast / forced-colors ──────────────────────── */
+@media(forced-colors:active){
+  .ed-hl-wrap{display:none}
+  .ed-ta{color:ButtonText;caret-color:ButtonText}
+  .ed-activeline{display:none}
+}
+
+/* ── Syntax colours ──────────────────────────────────────── */
+.kw{color:var(--accent);font-weight:600}
+.str{color:var(--green)}
+.num{color:var(--orange)}
+.op{color:var(--teal)}
+.id{color:var(--blue)}
+.cmt{color:var(--muted);font-style:italic}
+.wc{color:var(--yellow)}
+
+/* ── Results panel ───────────────────────────────────────── */
+.res-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:60px}
+.res-tabs{height:36px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 6px;gap:2px;flex-shrink:0}
+.tab{padding:4px 14px;background:none;border:none;border-radius:var(--r);cursor:pointer;
+  font-size:12px;color:var(--sub);font-family:var(--ui);transition:background .15s,color .15s;white-space:nowrap}
+.tab:hover{background:var(--surface2);color:var(--text)}
+.tab.on{background:var(--surface2);color:var(--accent);font-weight:600}
+.res-info{margin-left:auto;font-size:11px;color:var(--sub);padding:0 8px;white-space:nowrap}
+
+.tab-pane{display:none;flex:1;flex-direction:column;overflow:hidden}
+.tab-pane.on{display:flex}
+
+/* ── Empty state ─────────────────────────────────────────── */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;padding:20px;text-align:center}
+.empty-ico{font-size:38px;color:var(--surface3)}
+.empty p{font-size:12px;color:var(--muted)}
+.empty .hint{font-size:11px;font-family:var(--mono)}
+
+/* ── Data grid ───────────────────────────────────────────── */
+.grid-wrap{flex:1;overflow:auto}
+.dgrid{width:100%;border-collapse:collapse;font-size:12px;font-family:var(--mono)}
+.dgrid thead th{position:sticky;top:0;z-index:10;background:var(--surface);
+  border:1px solid var(--border);padding:6px 14px;text-align:left;font-weight:700;
+  font-size:11px;color:var(--accent);white-space:nowrap;letter-spacing:.04em;
+  cursor:pointer;user-select:none}
+.dgrid thead th:hover{background:var(--surface2)}
+.dgrid thead th.sa::after{content:" ↑";color:var(--yellow)}
+.dgrid thead th.sd::after{content:" ↓";color:var(--yellow)}
+.dgrid tbody td{border:1px solid var(--border);padding:5px 14px;color:var(--text);
+  max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dgrid tbody tr:hover td{background:rgba(203,166,247,.06)}
+.dgrid tbody tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+.dgrid tbody tr:hover:nth-child(even) td{background:rgba(203,166,247,.06)}
+/* Cell badges */
+.b-lc{background:rgba(203,166,247,.15);color:var(--accent);border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700}
+.b-tc{background:rgba(137,180,250,.15);color:var(--blue);border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700}
+.b-file{color:var(--muted);font-size:10px}
+.b-pass{color:var(--green)}.b-fail{color:var(--red)}
+.b-y{color:var(--green);font-weight:700}.b-n{color:var(--red);font-weight:700}
+.b-emp{color:var(--muted);font-style:italic}
+
+/* ── JSON view ───────────────────────────────────────────── */
+.json-toolbar{height:36px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0}
+.json-view{flex:1;overflow:auto;padding:14px 16px;font-family:var(--mono);font-size:11px;
+  line-height:1.55;color:var(--text);white-space:pre;background:var(--bg)}
+.jk{color:var(--blue)}.js{color:var(--green)}.jn{color:var(--orange)}
+.jb{color:var(--yellow)}.jnull{color:var(--muted)}.jp{color:var(--sub)}
+.j-file-hdr{color:var(--muted);font-style:italic}
+
+/* ── History ─────────────────────────────────────────────── */
+.hist-list{flex:1;overflow-y:auto;padding:8px}
+.hist-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:10px 12px;margin-bottom:6px;cursor:pointer;transition:border-color .15s}
+.hist-item:hover{border-color:var(--accent)}
+.hist-q{font-family:var(--mono);font-size:11px;color:var(--text);margin-bottom:6px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-meta{display:flex;align-items:center;gap:10px;font-size:10px;color:var(--muted)}
+.h-ok{color:var(--green);font-weight:700}.h-err{color:var(--red);font-weight:700}
+.h-time{margin-left:auto}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:var(--r);
+  border:1px solid var(--border);cursor:pointer;font-size:12px;font-family:var(--ui);
+  transition:background .15s,border-color .15s,color .15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#1e1e2e;border-color:var(--accent);font-weight:700}
+.btn-primary:hover{background:var(--pink);border-color:var(--pink)}
+.btn-ghost{background:transparent;color:var(--sub)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-sm{padding:3px 9px;font-size:11px}
+.btn-open{padding:12px 28px;font-size:14px;font-weight:700;background:var(--accent);
+  color:#1e1e2e;border:none;border-radius:var(--r);cursor:pointer;letter-spacing:.03em}
+.btn-open:hover{background:var(--pink)}
+
+/* ── Help modal ──────────────────────────────────────────── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;
+  display:flex;align-items:center;justify-content:center}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  width:580px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;
+  box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:14px;color:var(--accent);flex-shrink:0}
+.modal-body{overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:18px}
+.h4{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+.h-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.h-tbl td{padding:4px 10px;border:1px solid var(--border)}
+.h-tbl td:first-child{color:var(--blue);font-family:var(--mono);font-weight:600;width:160px}
+.h-pre{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);
+  padding:12px 14px;font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--text);overflow-x:auto}
+kbd{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-family:var(--mono);font-size:11px}
+
+/* ── Toast ───────────────────────────────────────────────── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);padding:10px 18px;font-size:12px;color:var(--text);z-index:1000;
+  opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s;pointer-events:none;
+  max-width:340px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.ok{border-color:var(--green)}.toast.err{border-color:var(--red)}.toast.info{border-color:var(--accent)}
+
+/* ── Autocomplete ────────────────────────────────────────── */
+.sugg-box{position:fixed;z-index:400;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r);overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.55);
+  min-width:210px;max-width:360px;max-height:230px;display:none;scrollbar-width:thin}
+.sugg-item{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 8px;cursor:pointer;
+  font-family:var(--mono);font-size:12px;color:var(--text);user-select:none;white-space:nowrap}
+.sugg-item:hover,.sugg-item.on{background:var(--surface3)}
+.sugg-badge{font-size:9px;font-weight:700;letter-spacing:.05em;padding:1px 5px;
+  border-radius:3px;flex-shrink:0}
+.sb-tbl{background:rgba(203,166,247,.18);color:var(--accent)}
+.sb-col{background:rgba(137,180,250,.18);color:var(--blue)}
+.sb-kw {background:rgba(148,226,213,.18);color:var(--teal)}
+.sugg-label{flex:1;overflow:hidden;text-overflow:ellipsis}
+.sugg-hi{color:var(--accent);font-weight:700}
+.sugg-footer{font-size:10px;color:var(--muted);padding:4px 10px;
+  border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LANDING ═══════════════ -->
+<div id="landing">
+  <div class="land-box">
+    <span class="land-hex">⬡</span>
+    <h1>TestData Query Studio</h1>
+
+    <!-- State 1: checking stored session (shown briefly on every open) -->
+    <div class="land-state on" id="ls-checking">
+      <div class="spinner"></div>
+      <span class="spin-msg">Loading test data…</span>
+    </div>
+
+    <!-- State 2: stored handle found but browser needs one-click permission re-grant -->
+    <div class="land-state" id="ls-resume">
+      <div class="resume-folder" id="resume-folder-name">test-data</div>
+      <button class="btn-resume" id="btn-resume">▶ Load Test Data</button>
+      <span class="resume-hint">Browser needs one-click confirmation to re-access the folder.<br>This only appears on a fresh browser session.</span>
+      <button class="link-change" id="btn-change">Choose a different folder</button>
+    </div>
+
+    <!-- State 3: first-time — no stored handle -->
+    <div class="land-state" id="ls-fresh">
+      <p>A standalone SQL interface for your lifecycle-based JSON test data.<br>No server. No setup.</p>
+      <ul class="land-features">
+        <li>Lifecycle subfolder = SQL Table (STP, OTDTC, RT…)</li>
+        <li>Multiple JSON files per lifecycle merged transparently</li>
+        <li>SELECT · UPDATE · INSERT · DELETE · ALTER · DESCRIBE</li>
+        <li>All changes auto-saved to the correct source file</li>
+        <li>Remembers your folder — auto-loads every time after first setup</li>
+      </ul>
+      <button class="btn-open" id="btn-open">⬡ Select test-data Folder</button>
+      <div class="land-note">
+        Requires <code>Chrome</code> or <code>Edge</code>.<br>
+        Select once — the studio remembers and auto-loads from then on.
+      </div>
+    </div>
+
+    <div class="no-fsa" id="no-fsa">
+      ✗ Your browser does not support the File System Access API.<br>
+      Please use <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ STUDIO ═══════════════ -->
+<div id="studio" style="display:none">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="logo"><span class="logo-hex">⬡</span><span>TestData Query Studio</span></div>
+    <div class="ctx-badge"><span class="ctx-pill" id="ctx-pill">No folder loaded</span></div>
+    <div class="top-actions">
+      <button class="btn btn-ghost btn-sm" id="btn-reload"  title="Re-read all files from disk">↻ Reload</button>
+      <button class="btn btn-ghost btn-sm" id="btn-chfolder" title="Change test-data folder">📂 Change Folder</button>
+      <button class="btn btn-ghost btn-sm" id="btn-help"    title="Query reference">? Help</button>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+      <!-- Lifecycles / Tables -->
+      <div class="sidebar-sec">
+        <div class="sec-title">TABLES (LIFECYCLES)</div>
+        <div class="lc-tree" id="lc-tree"><div class="tree-msg">Loading…</div></div>
+      </div>
+
+      <!-- Schema -->
+      <div class="sidebar-sec schema-sec">
+        <div class="sec-title">SCHEMA <span class="sec-sub" id="schema-lbl"></span></div>
+        <div class="s-body" id="schema-body"><div class="tree-msg">Click a table to inspect</div></div>
+      </div>
+
+    </aside>
+
+    <div class="v-resize" id="v-resize"></div>
+
+    <!-- Main -->
+    <main class="main">
+
+      <!-- Editor -->
+      <div class="ed-panel" id="ed-panel">
+        <div class="ed-toolbar">
+          <span class="panel-lbl">QUERY EDITOR</span>
+          <div class="ed-actions">
+            <select id="sel-ex" class="sel-ex" title="Load example"><option value="">⚡ Examples…</option></select>
+            <button class="btn btn-ghost btn-sm" id="btn-fmt"  title="Format keywords">⇥ Format</button>
+            <button class="btn btn-ghost btn-sm" id="btn-clr"  title="Clear (Ctrl+L)">✕ Clear</button>
+            <button class="btn btn-primary"      id="btn-run"  title="Execute (Ctrl+Enter)">▶ Run</button>
+          </div>
+        </div>
+        <div class="ed-body">
+          <div class="ed-gutter" id="ed-gutter" aria-hidden="true">1</div>
+          <div class="ed-code" id="ed-code">
+            <div class="ed-activeline" id="ed-activeline"></div>
+            <div class="ed-hl-wrap" id="ed-hl-wrap" aria-hidden="true">
+              <pre class="ed-hl" id="ed-hl"></pre>
+            </div>
+            <textarea id="ed-ta" class="ed-ta"
+              aria-label="SQL Query Editor"
+              aria-describedby="ed-kbhint"
+              spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="none"
+              placeholder="-- Ctrl+Enter to run&#10;SELECT * FROM STP&#10;SELECT * FROM OTDTC WHERE ITERATION = '1'"></textarea>
+          </div>
+        </div>
+        <div class="ed-status">
+          <span id="st-msg" role="status" aria-live="polite">Ready</span>
+          <span id="ed-lc" class="ed-lc" aria-live="off" aria-label="Cursor position">Ln 1, Col 1</span>
+          <span id="ed-kbhint" class="status-hint">Ctrl+Enter · Tab=indent · Esc→Tab=exit · Ctrl+L=clear</span>
+        </div>
+      </div>
+
+      <div class="h-resize" id="h-resize"></div>
+
+      <!-- Results -->
+      <div class="res-panel">
+        <div class="res-tabs">
+          <button class="tab on" data-tab="grid">⊞ Grid</button>
+          <button class="tab"    data-tab="json">{ } JSON</button>
+          <button class="tab"    data-tab="hist">◷ History</button>
+          <div class="res-info" id="res-info"></div>
+        </div>
+
+        <!-- Grid -->
+        <div class="tab-pane on" id="tab-grid">
+          <div class="empty" id="empty">
+            <div class="empty-ico">⬡</div>
+            <p>Open a folder and run a query</p>
+            <p class="hint">SELECT · UPDATE · INSERT · DELETE · ALTER · DESCRIBE</p>
+          </div>
+          <div class="grid-wrap" id="grid-wrap" style="display:none">
+            <table class="dgrid" id="dgrid"></table>
+          </div>
+        </div>
+
+        <!-- JSON -->
+        <div class="tab-pane" id="tab-json">
+          <div class="json-toolbar">
+            <span class="panel-lbl">FILE CONTENTS</span>
+            <span style="font-size:11px;color:var(--muted);margin-left:6px" id="json-lbl"></span>
+            <button class="btn btn-ghost btn-sm" id="btn-cpjson" style="margin-left:auto" title="Copy">⎘ Copy</button>
+          </div>
+          <div class="json-view" id="json-view"><span style="color:var(--muted)">Click a table in the sidebar to view its files</span></div>
+        </div>
+
+        <!-- History -->
+        <div class="tab-pane" id="tab-hist">
+          <div class="json-toolbar">
+            <span class="panel-lbl">QUERY HISTORY</span>
+            <button class="btn btn-ghost btn-sm" id="btn-clrhist" style="margin-left:auto">✕ Clear</button>
+          </div>
+          <div class="hist-list" id="hist-list">
+            <div class="empty" style="height:100%"><div class="empty-ico" style="font-size:28px">◷</div><p>No queries yet</p></div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div><!-- layout -->
+</div><!-- studio -->
+
+<!-- ═══════════════ HELP MODAL ═══════════════ -->
+<div class="modal-bg" id="modal-help" style="display:none">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span>Query Reference</span>
+      <button class="btn btn-ghost btn-sm" id="btn-close-help">✕</button>
+    </div>
+    <div class="modal-body">
+      <div><p class="h4">Model</p>
+        <table class="h-tbl">
+          <tr><td>Table</td><td>Lifecycle subfolder (STP, OTDTC, RT…)</td></tr>
+          <tr><td>Row</td><td>One iteration record from any file in that lifecycle</td></tr>
+          <tr><td>_TC</td><td>TC key the row belongs to (TC1, TC2…) — virtual</td></tr>
+          <tr><td>_FILE</td><td>Source JSON filename — virtual, filterable</td></tr>
+        </table>
+      </div>
+      <div><p class="h4">Statements</p>
+        <pre class="h-pre">SELECT &lt;cols|*&gt; FROM &lt;table|*&gt; [WHERE &lt;cond&gt;]
+
+UPDATE &lt;table|*&gt; SET col='val'[,...] [WHERE &lt;cond&gt;]
+
+INSERT INTO &lt;table&gt; VALUES (TCID='TC10', ITERATION='1', col='val',...)
+
+DELETE FROM &lt;table|*&gt; WHERE &lt;cond&gt;
+
+ALTER TABLE &lt;table|*&gt; ADD COLUMN &lt;col&gt; DEFAULT '&lt;val&gt;'
+ALTER TABLE &lt;table|*&gt; DROP COLUMN &lt;col&gt;
+ALTER TABLE &lt;table|*&gt; RENAME COLUMN &lt;old&gt; TO &lt;new&gt;
+
+DESCRIBE &lt;table|*&gt;</pre>
+      </div>
+      <div><p class="h4">WHERE operators</p>
+        <pre class="h-pre">=  !=  &gt;  &lt;  &gt;=  &lt;=  LIKE '%pattern%'
+AND  OR   (left-to-right, can filter on _TC and _FILE too)</pre>
+      </div>
+      <div><p class="h4">File routing</p>
+        <table class="h-tbl">
+          <tr><td>SELECT / DESCRIBE</td><td>Reads all files in the lifecycle, merged</td></tr>
+          <tr><td>UPDATE / DELETE</td><td>Writes back to each row's source file</td></tr>
+          <tr><td>INSERT</td><td>Appends to the file that already has the TCID, else first file</td></tr>
+          <tr><td>ALTER</td><td>Applies to every file in the lifecycle</td></tr>
+        </table>
+      </div>
+      <div><p class="h4">Shortcuts</p>
+        <table class="h-tbl">
+          <tr><td><kbd>Ctrl+Enter</kbd></td><td>Execute query</td></tr>
+          <tr><td><kbd>Tab</kbd></td><td>Insert 2 spaces</td></tr>
+          <tr><td><kbd>Ctrl+L</kbd></td><td>Clear editor</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="sugg-box" id="sugg-box" role="listbox" aria-label="SQL completions"></div>
+
+<script>
+'use strict';
+
+// ─── Meta symbol (non-enumerable row metadata) ────────────────────────────────
+const META = Symbol('m');
+
+// ─── State ────────────────────────────────────────────────────────────────────
+const S = {
+  rootHandle   : null,
+  lifecycles   : {},   // { name: { handle, files:[{ name, handle, data, dirty }] } }
+  activeLC     : null,
+  history      : [],
+  sortCol      : null,
+  sortDir      : 'asc',
+};
+
+// ═══════════════════════════════════════════════════════════
+//  INDEXEDDB — persist folder handle across sessions
+// ═══════════════════════════════════════════════════════════
+const IDB = { name: 'tq-studio', store: 'handles', key: 'root' };
+
+function idbOpen() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(IDB.name, 1);
+    r.onupgradeneeded = e => e.target.result.createObjectStore(IDB.store);
+    r.onsuccess = e => res(e.target.result);
+    r.onerror   = () => rej(r.error);
+  });
+}
+
+async function idbGet() {
+  try {
+    const db = await idbOpen();
+    return new Promise(res => {
+      const tx  = db.transaction(IDB.store, 'readonly');
+      const req = tx.objectStore(IDB.store).get(IDB.key);
+      req.onsuccess = () => res(req.result || null);
+      req.onerror   = () => res(null);
+    });
+  } catch (_) { return null; }
+}
+
+async function idbPut(handle) {
+  try {
+    const db = await idbOpen();
+    return new Promise(res => {
+      const tx = db.transaction(IDB.store, 'readwrite');
+      tx.objectStore(IDB.store).put(handle, IDB.key);
+      tx.oncomplete = res; tx.onerror = res;
+    });
+  } catch (_) {}
+}
+
+async function idbClear() {
+  try {
+    const db = await idbOpen();
+    const tx = db.transaction(IDB.store, 'readwrite');
+    tx.objectStore(IDB.store).delete(IDB.key);
+  } catch (_) {}
+}
+
+// ═══════════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // Wire studio controls (safe regardless of landing state)
+  document.getElementById('btn-run').addEventListener('click', runQuery);
+  document.getElementById('btn-clr').addEventListener('click', clearEditor);
+  document.getElementById('btn-fmt').addEventListener('click', formatQuery);
+  document.getElementById('btn-reload').addEventListener('click', reloadAll);
+  document.getElementById('btn-chfolder').addEventListener('click', pickNewFolder);
+  document.getElementById('btn-help').addEventListener('click', () => modal(true));
+  document.getElementById('btn-close-help').addEventListener('click', () => modal(false));
+  document.getElementById('modal-help').addEventListener('click', e => { if (e.target.id === 'modal-help') modal(false); });
+  document.getElementById('btn-cpjson').addEventListener('click', copyJson);
+  document.getElementById('btn-clrhist').addEventListener('click', clearHistory);
+  document.getElementById('sel-ex').addEventListener('change', e => { if (e.target.value) { setEditor(e.target.value); e.target.value = ''; } });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.activeElement?.id !== 'ed-ta') modal(false); });
+  initEditor();
+  initTabs();
+  initResizers();
+
+  if (!('showDirectoryPicker' in window)) {
+    document.getElementById('no-fsa').style.display = 'block';
+    showLandingState('fresh');
+    return;
+  }
+
+  // Try to auto-load from stored handle
+  autoLoad();
+});
+
+// Three landing states: 'checking' | 'resume' | 'fresh'
+function showLandingState(state, handle) {
+  ['checking','resume','fresh'].forEach(s =>
+    document.getElementById(`ls-${s}`).classList.toggle('on', s === state)
+  );
+  if (state === 'resume' && handle) {
+    document.getElementById('resume-folder-name').textContent = handle.name || 'test-data';
+    document.getElementById('btn-resume').onclick  = () => resumeLoad(handle);
+    document.getElementById('btn-change').onclick  = pickNewFolder;
+  }
+  if (state === 'fresh') {
+    document.getElementById('btn-open').onclick = pickNewFolder;
+  }
+}
+
+async function autoLoad() {
+  showLandingState('checking');
+
+  const stored = await idbGet();
+  if (!stored) { showLandingState('fresh'); return; }
+
+  try {
+    // queryPermission does NOT require a user gesture — just checks current state
+    const perm = await stored.queryPermission({ mode: 'readwrite' });
+    if (perm === 'granted') {
+      // Same browser session: fully automatic, no user interaction needed
+      await loadFolder(stored);
+    } else {
+      // New browser session: show one-click resume button (not a full folder picker)
+      showLandingState('resume', stored);
+    }
+  } catch (_) {
+    // Stored handle is stale (folder moved/deleted) — go back to fresh
+    await idbClear();
+    showLandingState('fresh');
+  }
+}
+
+async function resumeLoad(handle) {
+  try {
+    // requestPermission shows a small browser confirmation bar (not a folder picker)
+    const perm = await handle.requestPermission({ mode: 'readwrite' });
+    if (perm === 'granted') {
+      await loadFolder(handle);
+    } else {
+      toast('Permission denied — please choose the folder manually', 'err');
+      showLandingState('fresh');
+    }
+  } catch (e) {
+    if (e.name !== 'AbortError') { toast(e.message, 'err'); showLandingState('fresh'); }
+  }
+}
+
+async function pickNewFolder() {
+  try {
+    const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+    await loadFolder(handle);
+  } catch (e) {
+    if (e.name !== 'AbortError') toast(e.message, 'err');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  FILE SYSTEM ACCESS
+// ═══════════════════════════════════════════════════════════
+async function loadFolder(handle) {
+  S.rootHandle  = handle;
+  S.lifecycles  = {};
+  S.activeLC    = null;
+
+  for await (const [name, h] of handle.entries()) {
+    if (h.kind !== 'directory' || name.startsWith('.')) continue;
+    const lc = { handle: h, name, files: [] };
+
+    for await (const [fname, fh] of h.entries()) {
+      if (!fname.endsWith('.json') || fname.toLowerCase().includes('locator')) continue;
+      try {
+        const text = await (await fh.getFile()).text();
+        lc.files.push({ name: fname, handle: fh, data: JSON.parse(text), dirty: false });
+      } catch (_) {}
+    }
+
+    if (lc.files.length) {
+      lc.files.sort((a, b) => a.name.localeCompare(b.name));
+      S.lifecycles[name] = lc;
+    }
+  }
+
+  if (!Object.keys(S.lifecycles).length) {
+    toast('No lifecycle subfolders with JSON files found', 'err');
+    showLandingState('fresh');
+    return;
+  }
+
+  // Persist handle so next open is automatic
+  await idbPut(handle);
+
+  showStudio(handle.name);
+  renderLcTree();
+  toast(`Loaded ${Object.keys(S.lifecycles).length} lifecycle(s)`, 'ok');
+}
+
+async function reloadAll() {
+  if (!S.rootHandle) return;
+  const prevLC = S.activeLC;
+  await loadFolder(S.rootHandle);
+  // Re-select same lifecycle if it still exists after reload
+  if (prevLC && S.lifecycles[prevLC]) setActiveLC(prevLC);
+}
+
+async function saveFile(file) {
+  try {
+    const w = await file.handle.createWritable();
+    await w.write(JSON.stringify(file.data, null, 2));
+    await w.close();
+    file.dirty = false;
+  } catch (e) {
+    throw new Error(`Save failed for ${file.name}: ${e.message}`);
+  }
+}
+
+async function saveDirtySet(set) {
+  for (const f of set) await saveFile(f);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  DATA LAYER
+// ═══════════════════════════════════════════════════════════
+
+/** Returns all rows from every file in a lifecycle, with META symbol for write-back. */
+function getRows(lcName) {
+  const lc   = S.lifecycles[lcName];
+  const rows = [];
+
+  for (let fi = 0; fi < lc.files.length; fi++) {
+    const file = lc.files[fi];
+    const data = file.data;
+
+    if (Array.isArray(data)) {
+      for (let ii = 0; ii < data.length; ii++) {
+        const r = { ...data[ii], _LIFECYCLE: lcName, _FILE: file.name, _TC: String(data[ii].TCID || '-') };
+        r[META]  = { lcName, fi, tcKey: null, ii, fmt: 'flat' };
+        rows.push(r);
+      }
+    } else {
+      for (const [tcKey, tcVal] of Object.entries(data)) {
+        const iters = Array.isArray(tcVal?.iterations) ? tcVal.iterations : [];
+        for (let ii = 0; ii < iters.length; ii++) {
+          const r = { ...iters[ii], _LIFECYCLE: lcName, _FILE: file.name, _TC: tcKey };
+          r[META]  = { lcName, fi, tcKey, ii, fmt: 'tc' };
+          rows.push(r);
+        }
+      }
+    }
+  }
+  return rows;
+}
+
+/** Resolve table expression to array of lifecycle names. */
+function resolveLCs(expr) {
+  const t = expr.trim().toUpperCase();
+  if (t === '*') return Object.keys(S.lifecycles);
+  const found = Object.keys(S.lifecycles).find(k => k.toUpperCase() === t);
+  if (!found) {
+    const avail = Object.keys(S.lifecycles).join(', ') || '(none loaded)';
+    throw new Error(`Table '${expr}' not found. Available: ${avail}`);
+  }
+  return [found];
+}
+
+// ═══════════════════════════════════════════════════════════
+//  QUERY PARSER
+// ═══════════════════════════════════════════════════════════
+function parseQuery(q) {
+  const norm = q.replace(/\s+/g, ' ').trim();
+  const up   = norm.toUpperCase();
+  if (up.startsWith('SELECT '))      return parseSelect(norm);
+  if (up.startsWith('UPDATE '))      return parseUpdate(norm);
+  if (up.startsWith('INSERT INTO ')) return parseInsert(norm);
+  if (up.startsWith('DELETE FROM ')) return parseDelete(norm);
+  if (up.startsWith('ALTER TABLE ')) return parseAlter(norm);
+  if (up.startsWith('DESCRIBE ') || up.startsWith('DESC ')) return parseDescribe(norm);
+  throw new Error('Unknown statement. Valid: SELECT | UPDATE | INSERT INTO | DELETE FROM | ALTER TABLE | DESCRIBE');
+}
+
+const uq = v => {
+  v = (v || '').trim();
+  return (v.startsWith("'") && v.endsWith("'")) || (v.startsWith('"') && v.endsWith('"')) ? v.slice(1,-1) : v;
+};
+
+function parseWhere(s) {
+  if (!s) return [];
+  // Quote-aware AND/OR splitter — won't split inside 'A AND B' strings
+  const conds = [], ops = [];
+  let buf = '', inQ = false, qc = '';
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (inQ) { buf += ch; if (ch === qc) inQ = false; continue; }
+    if (ch === "'" || ch === '"') { inQ = true; qc = ch; buf += ch; continue; }
+    // Check for AND/OR keyword boundary when preceded by whitespace
+    if (/\s/.test(ch)) {
+      const rest = s.slice(i + 1);
+      const km   = rest.match(/^(AND|OR)\s+/i);
+      if (km) {
+        conds.push(buf.trim());
+        ops.push(km[1].toUpperCase());
+        i += km[0].length; // skip the operator token
+        buf = '';
+        continue;
+      }
+    }
+    buf += ch;
+  }
+  if (buf.trim()) conds.push(buf.trim());
+  return conds.map((cond, idx) => {
+    const c = parseCond(cond);
+    c.logicalOp = ops[idx] || 'AND';
+    return c;
+  });
+}
+
+function parseCond(s) {
+  s = s.trim();
+  // IS EMPTY / IS NOT EMPTY
+  let m = s.match(/^(\w+)\s+IS\s+NOT\s+EMPTY$/i);
+  if (m) return { col: m[1], op: 'NOTEMPTY', val: '' };
+  m = s.match(/^(\w+)\s+IS\s+EMPTY$/i);
+  if (m) return { col: m[1], op: 'ISEMPTY', val: '' };
+  // IS NULL / IS NOT NULL (alias for empty)
+  m = s.match(/^(\w+)\s+IS\s+NOT\s+NULL$/i);
+  if (m) return { col: m[1], op: 'NOTEMPTY', val: '' };
+  m = s.match(/^(\w+)\s+IS\s+NULL$/i);
+  if (m) return { col: m[1], op: 'ISEMPTY', val: '' };
+  // Standard operators
+  m = s.match(/^(\w+)\s*(!=|<>|>=|<=|>|<|=|LIKE|NOT LIKE)\s*(.+)$/i);
+  if (!m) throw new Error(`Cannot parse condition: "${s}"`);
+  const op = m[2].toUpperCase();
+  return { col: m[1], op: op === '<>' ? '!=' : op, val: uq(m[3].trim()) };
+}
+
+function parseSetClause(s) {
+  const r = {}, re = /(\w+)\s*=\s*('[^']*'|"[^"]*"|[^,]+)/g;
+  let m;
+  while ((m = re.exec(s))) r[m[1].trim()] = uq(m[2].trim());
+  if (!Object.keys(r).length) throw new Error(`Invalid SET clause: "${s}"`);
+  return r;
+}
+
+function parseSelect(q) {
+  // Supports: SELECT [DISTINCT] <cols|*> FROM <table|*> [WHERE <cond>] [LIMIT <n>]
+  const m = q.match(/^SELECT\s+(DISTINCT\s+)?(.*?)\s+FROM\s+(\S+)(?:\s+WHERE\s+(.*?))?(?:\s+LIMIT\s+(\d+))?$/i);
+  if (!m) throw new Error('SELECT: SELECT [DISTINCT] <cols|*> FROM <table|*> [WHERE <cond>] [LIMIT n]');
+  const distinct = !!m[1];
+  const colStr   = m[2].trim();
+  const cols     = colStr === '*' ? ['*'] : colStr.split(',').map(c => c.trim()).filter(Boolean);
+  const limit    = m[5] ? parseInt(m[5], 10) : null;
+  return { type:'SELECT', distinct, cols, table: m[3], where: parseWhere(m[4]), limit };
+}
+
+function parseUpdate(q) {
+  const m = q.match(/^UPDATE\s+(\S+)\s+SET\s+(.+?)(?:\s+WHERE\s+(.+))?$/i);
+  if (!m) throw new Error("UPDATE: UPDATE <table|*> SET col='val'[,...] [WHERE <cond>]");
+  return { type:'UPDATE', table: m[1], set: parseSetClause(m[2]), where: parseWhere(m[3]) };
+}
+
+function parseInsert(q) {
+  const m = q.match(/^INSERT\s+INTO\s+(\S+)\s+VALUES\s*\((.+)\)$/i);
+  if (!m) throw new Error("INSERT: INSERT INTO <table> VALUES (col='val',...)");
+  const vals = {}, re = /(\w+)\s*=\s*('[^']*'|"[^"]*"|[^,)]+)/g;
+  let pm;
+  while ((pm = re.exec(m[2]))) vals[pm[1].trim()] = uq(pm[2].trim());
+  if (!Object.keys(vals).length) throw new Error('No values in INSERT');
+  return { type:'INSERT', table: m[1], vals };
+}
+
+function parseDelete(q) {
+  const m = q.match(/^DELETE\s+FROM\s+(\S+)(?:\s+WHERE\s+(.+))?$/i);
+  if (!m) throw new Error('DELETE: DELETE FROM <table|*> WHERE <cond>');
+  if (!m[2]) throw new Error('DELETE requires a WHERE clause (safety guard)');
+  return { type:'DELETE', table: m[1], where: parseWhere(m[2]) };
+}
+
+function parseAlter(q) {
+  let m;
+  m = q.match(/^ALTER\s+TABLE\s+(\S+)\s+ADD\s+COLUMN\s+(\w+)\s+DEFAULT\s+(.+)$/i);
+  if (m) return { type:'ALTER_ADD', table: m[1], col: m[2], def: uq(m[3].trim()) };
+  m = q.match(/^ALTER\s+TABLE\s+(\S+)\s+DROP\s+COLUMN\s+(\w+)$/i);
+  if (m) return { type:'ALTER_DROP', table: m[1], col: m[2] };
+  m = q.match(/^ALTER\s+TABLE\s+(\S+)\s+RENAME\s+COLUMN\s+(\w+)\s+TO\s+(\w+)$/i);
+  if (m) return { type:'ALTER_RENAME', table: m[1], oldCol: m[2], newCol: m[3] };
+  throw new Error('ALTER TABLE: ADD COLUMN <c> DEFAULT <v> | DROP COLUMN <c> | RENAME COLUMN <o> TO <n>');
+}
+
+function parseDescribe(q) {
+  const m = q.match(/^(?:DESCRIBE|DESC)\s+(\S+)$/i);
+  if (!m) throw new Error('DESCRIBE: DESCRIBE <table|*>');
+  return { type:'DESCRIBE', table: m[1] };
+}
+
+// ═══════════════════════════════════════════════════════════
+//  WHERE ENGINE
+// ═══════════════════════════════════════════════════════════
+function matchRow(row, where) {
+  if (!where?.length) return true;
+  let r = evalCond(row, where[0]);
+  for (let i = 0; i < where.length - 1; i++) {
+    const op  = where[i].logicalOp || 'AND';
+    const nxt = evalCond(row, where[i+1]);
+    r = op === 'AND' ? r && nxt : r || nxt;
+  }
+  return r;
+}
+
+function evalCond(row, c) {
+  const rv = String(row[c.col] ?? ''), ev = String(c.val);
+  switch (c.op) {
+    case '=':        return rv === ev;
+    case '!=':       return rv !== ev;
+    case '>':        return parseFloat(rv)  >  parseFloat(ev);
+    case '<':        return parseFloat(rv)  <  parseFloat(ev);
+    case '>=':       return parseFloat(rv)  >= parseFloat(ev);
+    case '<=':       return parseFloat(rv)  <= parseFloat(ev);
+    case 'ISEMPTY':  return rv === '' || rv === 'null' || rv === 'undefined';
+    case 'NOTEMPTY': return rv !== '' && rv !== 'null' && rv !== 'undefined';
+    case 'LIKE': {
+      // Escape regex metacharacters, then apply SQL wildcards
+      const pat = ev.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*').replace(/_/g, '.');
+      return new RegExp('^' + pat + '$', 'i').test(rv);
+    }
+    case 'NOT LIKE': {
+      const pat = ev.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/%/g, '.*').replace(/_/g, '.');
+      return !new RegExp('^' + pat + '$', 'i').test(rv);
+    }
+    default: return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  QUERY RUNNER
+// ═══════════════════════════════════════════════════════════
+async function runQuery() {
+  const q = getEditor().trim();
+  if (!q || q.startsWith('--')) { setStatus('Write a query first',''); return; }
+  if (!Object.keys(S.lifecycles).length) { toast('Open a folder first','err'); return; }
+
+  setStatus('Executing…','');
+  const t0 = Date.now();
+
+  try {
+    const parsed  = parseQuery(q);
+    const lcNames = resolveLCs(parsed.table);
+    let   res;
+
+    switch (parsed.type) {
+      case 'SELECT':       res = execSelect(parsed, lcNames);       break;
+      case 'DESCRIBE':     res = execDescribe(parsed, lcNames);     break;
+      case 'UPDATE':       res = await execUpdate(parsed, lcNames); break;
+      case 'INSERT':       res = await execInsert(parsed, lcNames); break;
+      case 'DELETE':       res = await execDelete(parsed, lcNames); break;
+      case 'ALTER_ADD':    res = await execAlterAdd(parsed, lcNames);    break;
+      case 'ALTER_DROP':   res = await execAlterDrop(parsed, lcNames);   break;
+      case 'ALTER_RENAME': res = await execAlterRename(parsed, lcNames); break;
+    }
+
+    const ms  = Date.now() - t0;
+    const mut = !!res.saved;
+
+    showGrid(res);
+    document.getElementById('res-info').textContent =
+      `${res.rowsAffected} row${res.rowsAffected!==1?'s':''} · ${parsed.type} · ${ms}ms${mut?' · ✓ Saved':''}`;
+    setStatus(`${res.rowsAffected} row(s) · ${ms}ms${mut?' · Saved ✓':''}`, mut ? 's-mut' : 's-ok');
+    addHistory(q, { ok:true, rowsAffected:res.rowsAffected, ms, mut });
+    if (mut) {
+      toast(res.msg || `Changes saved`, 'ok');
+      // Refresh schema + JSON view for affected lifecycles
+      const aff = [...new Set(lcNames)];
+      if (S.activeLC && aff.includes(S.activeLC)) renderJsonView(S.activeLC);
+    }
+    switchTab('grid');
+  } catch (e) {
+    const ms = Date.now() - t0;
+    setStatus(e.message, 's-err');
+    toast(e.message, 'err');
+    addHistory(q, { ok:false, error:e.message, ms });
+  }
+}
+
+// ─── SELECT ───────────────────────────────────────────────
+function execSelect(p, lcNames) {
+  const allRows = [];
+  for (const lc of lcNames) {
+    for (const r of getRows(lc)) {
+      if (matchRow(r, p.where)) allRows.push(r);
+    }
+  }
+
+  let rows = p.cols.includes('*')
+    ? allRows.map(r => {
+        const { _TC, _FILE, _LIFECYCLE, ...data } = { ...r };
+        return { _TC, _FILE, _LIFECYCLE, ...data };
+      })
+    : allRows.map(r => {
+        const c = {};
+        for (const col of p.cols) c[col] = r[col] ?? '';
+        return c;
+      });
+
+  if (p.distinct) {
+    const seen = new Set();
+    rows = rows.filter(r => {
+      const key = JSON.stringify(r);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  if (p.limit !== null && p.limit >= 0) rows = rows.slice(0, p.limit);
+
+  const cols = rows.length ? Object.keys(rows[0]) : [];
+  return { rows, columns: cols, rowsAffected: rows.length };
+}
+
+// ─── UPDATE ───────────────────────────────────────────────
+async function execUpdate(p, lcNames) {
+  const SAFE_SET = Object.fromEntries(Object.entries(p.set).filter(([k]) => !['_LIFECYCLE','_FILE','_TC'].includes(k)));
+  const dirty = new Set();
+  let n = 0;
+
+  for (const lc of lcNames) {
+    const lcObj = S.lifecycles[lc];
+    for (const r of getRows(lc)) {
+      if (!matchRow(r, p.where)) continue;
+      const m = r[META], file = lcObj.files[m.fi];
+      if (m.fmt === 'flat')  Object.assign(file.data[m.ii], SAFE_SET);
+      else                   Object.assign(file.data[m.tcKey].iterations[m.ii], SAFE_SET);
+      dirty.add(file); n++;
+    }
+  }
+
+  await saveDirtySet(dirty);
+  return { rows:[{Result:`✓ ${n} row(s) updated`}], columns:['Result'], rowsAffected:n, saved:dirty.size, msg:`${n} row(s) updated in ${dirty.size} file(s)` };
+}
+
+// ─── INSERT ───────────────────────────────────────────────
+async function execInsert(p, lcNames) {
+  if (p.table === '*') throw new Error('INSERT INTO * is not allowed — specify a lifecycle name');
+  const lc   = lcNames[0];
+  const lcObj = S.lifecycles[lc];
+  if (!lcObj.files.length) throw new Error('No files in lifecycle');
+
+  const { _LIFECYCLE, _FILE, _TC, ...cleanVals } = p.vals;
+  const tcid = cleanVals.TCID || null;
+  const dirty = new Set();
+
+  // Infer full column schema from existing rows so every column is present
+  const schemaRow = getRows(lc)[0] || null;
+  const schemaKeys = schemaRow
+    ? Object.keys(schemaRow).filter(k => k !== META && !['_TC','_FILE','_LIFECYCLE'].includes(k))
+    : [];
+  const fullRow = {};
+  for (const k of schemaKeys) fullRow[k] = '';   // default all to ''
+  Object.assign(fullRow, cleanVals);              // overwrite with user-supplied values
+
+  // Find file that already has this TCID as a TC key
+  let tgtFile = null, tgtTcKey = tcid;
+  if (tcid) {
+    for (const f of lcObj.files) {
+      if (!Array.isArray(f.data) && f.data[tcid]) { tgtFile = f; break; }
+    }
+  }
+  if (!tgtFile) tgtFile = lcObj.files[0];
+
+  if (Array.isArray(tgtFile.data)) {
+    tgtFile.data.push(fullRow);
+  } else {
+    tgtTcKey = tgtTcKey || `TC_${Date.now()}`;
+    if (!tgtFile.data[tgtTcKey]) tgtFile.data[tgtTcKey] = { iterations: [] };
+    tgtFile.data[tgtTcKey].iterations.push(fullRow);
+  }
+
+  const missing = schemaKeys.filter(k => !(k in cleanVals));
+  dirty.add(tgtFile);
+  await saveDirtySet(dirty);
+  const hint = missing.length ? ` · ${missing.length} column(s) defaulted to ''` : '';
+  return { rows:[{Result:`✓ 1 row inserted into ${tgtFile.name}${hint}`}], columns:['Result'], rowsAffected:1, saved:1, msg:`Inserted into ${tgtFile.name}${hint}` };
+}
+
+// ─── DELETE ───────────────────────────────────────────────
+async function execDelete(p, lcNames) {
+  const dirty = new Set();
+  let n = 0;
+
+  for (const lc of lcNames) {
+    const lcObj = S.lifecycles[lc];
+    // Collect indices per file/tcKey
+    const toRm = new Map(); // file → { flat:[ii], tc:{ tcKey:Set<ii> } }
+
+    for (const r of getRows(lc)) {
+      if (!matchRow(r, p.where)) continue;
+      const m = r[META], file = lcObj.files[m.fi];
+      if (!toRm.has(file)) toRm.set(file, { flat: new Set(), tc: {} });
+      const entry = toRm.get(file);
+      if (m.fmt === 'flat') entry.flat.add(m.ii);
+      else {
+        if (!entry.tc[m.tcKey]) entry.tc[m.tcKey] = new Set();
+        entry.tc[m.tcKey].add(m.ii);
+      }
+      n++;
+    }
+
+    for (const [file, rm] of toRm) {
+      if (Array.isArray(file.data)) {
+        file.data = file.data.filter((_, i) => !rm.flat.has(i));
+      } else {
+        for (const [tcKey, idxSet] of Object.entries(rm.tc)) {
+          file.data[tcKey].iterations = file.data[tcKey].iterations.filter((_, i) => !idxSet.has(i));
+          if (!file.data[tcKey].iterations.length) delete file.data[tcKey];
+        }
+      }
+      dirty.add(file);
+    }
+  }
+
+  await saveDirtySet(dirty);
+  return { rows:[{Result:`✓ ${n} row(s) deleted`}], columns:['Result'], rowsAffected:n, saved:dirty.size, msg:`${n} row(s) deleted from ${dirty.size} file(s)` };
+}
+
+// ─── ALTER ADD ────────────────────────────────────────────
+async function execAlterAdd(p, lcNames) {
+  const dirty = new Set();
+  let n = 0;
+  const applyTo = (iters, file) => {
+    let changed = false;
+    for (const r of iters) if (!(p.col in r)) { r[p.col] = p.def; n++; changed = true; }
+    if (changed) dirty.add(file);
+  };
+  for (const lc of lcNames) {
+    for (const f of S.lifecycles[lc].files) {
+      Array.isArray(f.data) ? applyTo(f.data, f) : Object.values(f.data).forEach(tc => applyTo(tc?.iterations||[], f));
+    }
+  }
+  await saveDirtySet(dirty);
+  return { rows:[{Result:`✓ Column '${p.col}' added (${n} rows)`}], columns:['Result'], rowsAffected:n, saved:dirty.size, msg:`Column '${p.col}' added to ${n} rows` };
+}
+
+// ─── ALTER DROP ───────────────────────────────────────────
+async function execAlterDrop(p, lcNames) {
+  const dirty = new Set();
+  let n = 0;
+  const applyTo = (iters, file) => {
+    let changed = false;
+    for (const r of iters) if (p.col in r) { delete r[p.col]; n++; changed = true; }
+    if (changed) dirty.add(file);
+  };
+  for (const lc of lcNames) {
+    for (const f of S.lifecycles[lc].files) {
+      Array.isArray(f.data) ? applyTo(f.data, f) : Object.values(f.data).forEach(tc => applyTo(tc?.iterations||[], f));
+    }
+  }
+  await saveDirtySet(dirty);
+  return { rows:[{Result:`✓ Column '${p.col}' dropped (${n} rows)`}], columns:['Result'], rowsAffected:n, saved:dirty.size, msg:`Column '${p.col}' dropped` };
+}
+
+// ─── ALTER RENAME ─────────────────────────────────────────
+async function execAlterRename(p, lcNames) {
+  const dirty = new Set();
+  let n = 0;
+  const applyTo = (iters, file) => {
+    let changed = false;
+    for (const r of iters) if (p.oldCol in r) { r[p.newCol] = r[p.oldCol]; delete r[p.oldCol]; n++; changed = true; }
+    if (changed) dirty.add(file);
+  };
+  for (const lc of lcNames) {
+    for (const f of S.lifecycles[lc].files) {
+      Array.isArray(f.data) ? applyTo(f.data, f) : Object.values(f.data).forEach(tc => applyTo(tc?.iterations||[], f));
+    }
+  }
+  await saveDirtySet(dirty);
+  return { rows:[{Result:`✓ '${p.oldCol}' → '${p.newCol}' (${n} rows)`}], columns:['Result'], rowsAffected:n, saved:dirty.size, msg:`Renamed ${p.oldCol} → ${p.newCol}` };
+}
+
+// ─── DESCRIBE ─────────────────────────────────────────────
+function execDescribe(p, lcNames) {
+  const rows = [];
+  for (const lc of lcNames) {
+    for (const f of S.lifecycles[lc].files) {
+      const data = f.data;
+      if (Array.isArray(data)) {
+        const cols = data.length ? Object.keys(data[0]) : [];
+        rows.push({ Lifecycle:lc, File:f.name, TC:'-', Columns:cols.length, Rows:data.length, SampleColumns:cols.join(', ') });
+      } else {
+        for (const [tc, val] of Object.entries(data)) {
+          const iters = val?.iterations || [];
+          const cols  = iters.length ? Object.keys(iters[0]) : [];
+          rows.push({ Lifecycle:lc, File:f.name, TC:tc, Columns:cols.length, Rows:iters.length, SampleColumns:cols.slice(0,6).join(', ') });
+        }
+      }
+    }
+  }
+  return { rows, columns: rows.length ? Object.keys(rows[0]) : [], rowsAffected: rows.length };
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UI — Lifecycle Tree
+// ═══════════════════════════════════════════════════════════
+function showStudio(folderName) {
+  document.getElementById('landing').style.display  = 'none';
+  document.getElementById('studio').style.display   = 'flex';
+  document.getElementById('ctx-pill').textContent   = `📂 ${folderName}`;
+}
+
+function showLanding() {
+  document.getElementById('studio').style.display  = 'none';
+  document.getElementById('landing').style.display = 'flex';
+}
+
+function renderLcTree() {
+  const tree = document.getElementById('lc-tree');
+  tree.innerHTML = '';
+
+  for (const [name, lc] of Object.entries(S.lifecycles)) {
+    const fileCount = lc.files.length;
+    const rowCount  = lc.files.reduce((acc, f) => {
+      if (Array.isArray(f.data)) return acc + f.data.length;
+      return acc + Object.values(f.data).reduce((a, tc) => a + (tc?.iterations?.length || 0), 0);
+    }, 0);
+
+    const row = el('div', { className: 'lc-row open' });
+    row.innerHTML = `<span class="lc-arrow">▶</span><span>${esc(name)}</span>
+      <span class="lc-badge">${fileCount} file${fileCount!==1?'s':''} · ${rowCount} rows</span>`;
+
+    const files = el('div', { className: 'lc-files open' });
+    for (const f of lc.files) {
+      const fi = el('div', { className: 'lc-row' });
+      fi.style.cssText = 'padding-left:28px;font-size:11px;font-weight:400;color:var(--sub);text-transform:none;letter-spacing:0';
+      fi.innerHTML = `<span style="color:var(--yellow);font-size:9px">⬡</span> ${esc(f.name)}`;
+      files.appendChild(fi);
+    }
+
+    row.addEventListener('click', () => {
+      const open = row.classList.toggle('open');
+      files.classList.toggle('open', open);
+      setActiveLC(name);
+    });
+
+    tree.appendChild(row);
+    tree.appendChild(files);
+
+    // Auto-select first lifecycle
+    if (Object.keys(S.lifecycles).indexOf(name) === 0) setActiveLC(name);
+  }
+
+  populateExamples();
+}
+
+function setActiveLC(name) {
+  S.activeLC = name;
+  document.getElementById('schema-lbl').textContent = name;
+  renderSchema(name);
+  renderJsonView(name);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UI — Schema
+// ═══════════════════════════════════════════════════════════
+function renderSchema(lcName) {
+  const body = document.getElementById('schema-body');
+  body.innerHTML = '';
+  const lc = S.lifecycles[lcName];
+
+  for (const f of lc.files) {
+    const data = f.data;
+
+    if (Array.isArray(data)) {
+      const cols = data.length ? Object.keys(data[0]) : [];
+      addSchemaGroup(body, `${lcName} (${f.name})`, `${data.length} rows`, cols);
+    } else {
+      for (const [tc, val] of Object.entries(data)) {
+        const iters = val?.iterations || [];
+        const cols  = iters.length ? Object.keys(iters[0]) : [];
+        addSchemaGroup(body, `${tc}`, `${f.name} · ${iters.length} rows`, cols);
+      }
+    }
+  }
+}
+
+function addSchemaGroup(container, title, sub, cols) {
+  const g   = el('div', { className: 'sc-lc' });
+  const hdr = el('div', { className: 'sc-lc-hdr' });
+  hdr.innerHTML = `<span class="sc-arrow">▶</span><span>${esc(title)}</span>
+    <span class="sc-rowcount">${esc(sub)}</span>`;
+  const colDiv = el('div', { className: 'sc-cols' });
+  for (const c of cols) {
+    const cd = el('div', { className: 'sc-col' });
+    cd.textContent = c;
+    cd.title       = `Insert "${c}"`;
+    cd.addEventListener('click', () => insertAtCursor(c));
+    colDiv.appendChild(cd);
+  }
+  hdr.addEventListener('click', () => {
+    hdr.classList.toggle('open');
+    colDiv.classList.toggle('open');
+  });
+  g.appendChild(hdr); g.appendChild(colDiv);
+  container.appendChild(g);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UI — Grid
+// ═══════════════════════════════════════════════════════════
+function showGrid(res) {
+  const empty = document.getElementById('empty');
+  const wrap  = document.getElementById('grid-wrap');
+  const tbl   = document.getElementById('dgrid');
+
+  if (!res.rows.length) {
+    empty.style.display = 'flex'; empty.querySelector('p').textContent = '0 rows returned';
+    wrap.style.display  = 'none';
+    return;
+  }
+  empty.style.display = 'none'; wrap.style.display = 'block';
+  buildGrid(res.columns, res.rows, tbl);
+}
+
+function buildGrid(cols, rows, tbl) {
+  S.sortCol = null;
+  let html = '<thead><tr>';
+  for (const c of cols) html += `<th data-col="${esc(c)}">${esc(c)}</th>`;
+  html += '</tr></thead><tbody>';
+  for (const r of rows) {
+    html += '<tr>';
+    for (const c of cols) html += `<td title="${esc(String(r[c]??''))}">${fmtCell(c, String(r[c]??''))}</td>`;
+    html += '</tr>';
+  }
+  tbl.innerHTML = html + '</tbody>';
+
+  tbl.querySelectorAll('thead th').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      S.sortDir = S.sortCol === col ? (S.sortDir==='asc'?'desc':'asc') : 'asc';
+      S.sortCol = col;
+      const sorted = [...rows].sort((a,b) => {
+        const av=String(a[col]??''), bv=String(b[col]??'');
+        const c = av.localeCompare(bv,undefined,{numeric:true});
+        return S.sortDir==='asc'?c:-c;
+      });
+      buildGrid(cols, sorted, tbl);
+    });
+  });
+}
+
+function fmtCell(col, val) {
+  if (!val) return `<span class="b-emp">(empty)</span>`;
+  const U = col.toUpperCase(), V = val.toUpperCase();
+  if (U === '_LIFECYCLE')     return `<span class="b-lc">${esc(val)}</span>`;
+  if (U === '_TC')            return `<span class="b-tc">${esc(val)}</span>`;
+  if (U === '_FILE')          return `<span class="b-file">${esc(val)}</span>`;
+  if (U === 'EXECUTION_STATUS') return `<span class="${V.includes('PASS')?'b-pass':V.includes('FAIL')?'b-fail':''}">${esc(val)}</span>`;
+  if (U === 'RUN_MODE' && V === 'Y') return `<span class="b-y">Y</span>`;
+  if (U === 'RUN_MODE' && V === 'N') return `<span class="b-n">N</span>`;
+  return esc(val);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UI — JSON View
+// ═══════════════════════════════════════════════════════════
+function renderJsonView(lcName) {
+  const lc   = S.lifecycles[lcName];
+  const parts = [];
+  for (const f of lc.files) {
+    parts.push(`<span class="j-file-hdr">// ══ ${esc(f.name)} ══</span>\n${syntaxJson(JSON.stringify(f.data, null, 2))}`);
+  }
+  document.getElementById('json-view').innerHTML   = parts.join('\n\n');
+  document.getElementById('json-lbl').textContent  = `${lcName} · ${lc.files.length} file(s)`;
+}
+
+function syntaxJson(j) {
+  return j.replace(
+    /("(?:\\u[0-9a-fA-F]{4}|\\[^u]|[^\\"])*"(?:\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?|[{}[\],:])/g,
+    m => {
+      if (/^"/.test(m)) return /:$/.test(m) ? `<span class="jk">${esc(m)}</span>` : `<span class="js">${esc(m)}</span>`;
+      if (/true|false/.test(m)) return `<span class="jb">${m}</span>`;
+      if (/null/.test(m))       return `<span class="jnull">${m}</span>`;
+      if (/[{}\[\]]/.test(m))   return `<span class="jp">${m}</span>`;
+      if (m === ',')            return `<span class="jp">${m}</span>`;
+      return `<span class="jn">${m}</span>`;
+    }
+  );
+}
+
+function copyJson() {
+  const text = document.getElementById('json-view').textContent;
+  navigator.clipboard.writeText(text).then(() => toast('JSON copied','ok'));
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UI — History
+// ═══════════════════════════════════════════════════════════
+function addHistory(q, r) {
+  S.history.unshift({ q, r, time: new Date().toLocaleTimeString() });
+  if (S.history.length > 100) S.history.pop();
+}
+
+function renderHistory() {
+  const list = document.getElementById('hist-list');
+  if (!S.history.length) {
+    list.innerHTML = '<div class="empty" style="height:100%"><div class="empty-ico" style="font-size:28px">◷</div><p>No queries yet</p></div>';
+    return;
+  }
+  list.innerHTML = S.history.map((item, i) => `
+    <div class="hist-item" data-i="${i}">
+      <div class="hist-q">${esc(item.q)}</div>
+      <div class="hist-meta">
+        <span class="${item.r.ok?'h-ok':'h-err'}">${item.r.ok?'✓':'✗'}</span>
+        <span>${item.r.ok ? `${item.r.rowsAffected} rows${item.r.mut?' · saved':''}` : esc(item.r.error||'')}</span>
+        <span>${item.r.ms}ms</span>
+        <span class="h-time">${item.time}</span>
+      </div>
+    </div>`).join('');
+  list.querySelectorAll('.hist-item').forEach(el => {
+    el.addEventListener('click', () => { setEditor(S.history[el.dataset.i].q); switchTab('grid'); });
+  });
+}
+
+function clearHistory() { S.history = []; renderHistory(); toast('History cleared','info'); }
+
+// ═══════════════════════════════════════════════════════════
+//  UI — Examples
+// ═══════════════════════════════════════════════════════════
+function populateExamples() {
+  const lcs  = Object.keys(S.lifecycles);
+  const tbl  = lcs[0] || 'STP';
+  const sel  = document.getElementById('sel-ex');
+
+  const ex = [
+    `SELECT * FROM ${tbl}`,
+    `SELECT * FROM *`,
+    `SELECT _TC, _FILE, TCID, ITERATION, SUPPLIER FROM ${tbl}`,
+    `SELECT * FROM ${tbl} WHERE ITERATION = '1'`,
+    `SELECT * FROM ${tbl} WHERE _TC = 'TC1'`,
+    `SELECT * FROM * WHERE RUN_MODE = 'Y'`,
+    `SELECT * FROM * WHERE EXECUTION_STATUS LIKE '%PASS%'`,
+    `UPDATE ${tbl} SET RUN_MODE = 'N' WHERE ITERATION = '1'`,
+    `UPDATE * SET EXECUTION_STATUS = 'SUITE_ITER_PASSED'`,
+    `INSERT INTO ${tbl} VALUES (TCID='TC_NEW', ITERATION='1', SUPPLIER='NEW_CO', RUN_MODE='Y', EXECUTION_STATUS='SUITE_ITER_PASSED', BUSINESS_UNIT='FINAL_BU', INVOICE_NUMBER='INV_001')`,
+    `DELETE FROM ${tbl} WHERE TCID = 'TC_NEW' AND ITERATION = '1'`,
+    `ALTER TABLE ${tbl} ADD COLUMN custom_status DEFAULT 'pending'`,
+    `ALTER TABLE * ADD COLUMN custom_status DEFAULT ''`,
+    `ALTER TABLE ${tbl} DROP COLUMN custom_status`,
+    `ALTER TABLE ${tbl} RENAME COLUMN custom_status TO review_status`,
+    `DESCRIBE ${tbl}`,
+    `DESCRIBE *`,
+  ];
+
+  sel.innerHTML = '<option value="">⚡ Examples…</option>' +
+    ex.map(q => `<option value="${esc(q)}">${esc(q.length>70?q.slice(0,70)+'…':q)}</option>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  EDITOR
+// ═══════════════════════════════════════════════════════════
+const SQL_KW = new Set(['SELECT','FROM','WHERE','UPDATE','SET','INSERT','INTO','VALUES',
+  'DELETE','ALTER','TABLE','ADD','DROP','RENAME','COLUMN','DEFAULT','TO','AND','OR',
+  'LIKE','DESCRIBE','DESC','NOT','NULL','AS','ALL']);
+
+function initEditor() {
+  const ta   = document.getElementById('ed-ta');
+  const hl   = document.getElementById('ed-hl');   // target <pre> directly — avoids UA font override on <code>
+  const gut  = document.getElementById('ed-gutter');
+  const wrap = document.getElementById('ed-hl-wrap');
+  const alEl = document.getElementById('ed-activeline');
+  const lcEl = document.getElementById('ed-lc');
+  const LH   = 12 * 1.65;  // 19.8 px — font-size × line-height (must match CSS)
+  const PAD  = 10;          // top padding in px (must match .ed-ta padding-top)
+
+  let tabEscaped   = false;
+  let suggSuppress  = false; // suppress one suggestion cycle after applying a completion
+
+  // ── Scroll sync: scrollTop/Left (never transform) ────────────
+  // Called ONLY on scroll events or via rAF after input (browser must
+  // have already auto-scrolled the cursor into view before we read scrollTop).
+  const syncScroll = () => {
+    wrap.scrollTop  = ta.scrollTop;
+    wrap.scrollLeft = ta.scrollLeft;
+    gut.style.transform = `translateY(-${ta.scrollTop}px)`;
+  };
+
+  // ── Active-line + line:col (reads selectionStart — call after cursor moves) ─
+  const syncCursor = () => {
+    const pos      = ta.selectionStart;
+    const lines    = ta.value.slice(0, pos).split('\n');
+    const lineIdx  = lines.length - 1;
+    const col      = lines[lineIdx].length + 1;
+    lcEl.textContent = `Ln ${lineIdx + 1}, Col ${col}`;
+
+    if (document.activeElement !== ta) { alEl.style.display = 'none'; return; }
+    const top = PAD + lineIdx * LH - ta.scrollTop;
+    if (top > -LH && top < ta.clientHeight) {
+      alEl.style.top     = Math.max(0, top) + 'px';
+      alEl.style.display = 'block';
+    } else {
+      alEl.style.display = 'none';
+    }
+  };
+
+  // ── Content re-render (on every keystroke that changes text) ─
+  const renderContent = () => {
+    const text = ta.value;
+    hl.innerHTML = hlSQL(text);
+    gut.textContent = Array.from({length: text.split('\n').length}, (_, i) => i + 1).join('\n');
+  };
+
+  // ── input: render immediately, defer scroll sync to next frame ─
+  // The browser auto-scrolls the cursor into view AFTER the input event.
+  // Reading ta.scrollTop inside the input handler gets the pre-scroll value.
+  // requestAnimationFrame defers until the browser has finished scrolling.
+  ta.addEventListener('input', () => {
+    if (tabEscaped) { tabEscaped = false; setStatus('Ready', ''); }
+    renderContent();
+    requestAnimationFrame(() => {
+      syncScroll(); syncCursor();
+      if (!suggSuppress) showSugg(ta, getSugg(ta.value, ta.selectionStart));
+      else { suggSuppress = false; hideSugg(); }
+    });
+  });
+
+  // ── Manual scroll: hide suggestion (position would be stale) ──
+  ta.addEventListener('scroll', () => { syncScroll(); syncCursor(); hideSugg(); });
+
+  // ── Cursor movement (arrows, click, Shift+keys, etc.) ─────────
+  // selectionchange fires on document whenever selection/cursor changes
+  // in any focused element. Filter to textarea only.
+  document.addEventListener('selectionchange', () => {
+    if (document.activeElement === ta) syncCursor();
+  });
+
+  ta.addEventListener('focus', () => { syncCursor(); alEl.style.display = 'block'; });
+  ta.addEventListener('blur',  () => {
+    alEl.style.display = 'none'; tabEscaped = false;
+    setTimeout(hideSugg, 150); // slight delay lets mousedown on sugg item fire first
+  });
+
+  // ── Keyboard handler ──────────────────────────────────────────
+  ta.addEventListener('keydown', e => {
+    const s   = ta.selectionStart;
+    const end = ta.selectionEnd;
+
+    // ── Suggestion box intercepts keys when visible ─────────────
+    const sb = document.getElementById('sugg-box');
+    if (sb && sb.style.display !== 'none') {
+      if (e.key === 'ArrowDown') { e.preventDefault(); navSugg(1);  return; }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); navSugg(-1); return; }
+      if (e.key === 'Escape')    { hideSugg(); return; }
+      if ((e.key === 'Tab' || e.key === 'Enter') && SUGG.idx >= 0) {
+        e.preventDefault(); applySugg(ta, SUGG.items[SUGG.idx].label); return;
+      }
+    }
+
+    // Ctrl+Enter → execute
+    if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); runQuery(); return; }
+
+    // Ctrl+L → clear
+    if (e.ctrlKey && e.key === 'l') { e.preventDefault(); clearEditor(); return; }
+
+    // Escape → arm Tab-release
+    // Pressing Tab AFTER Escape lets browser's default Tab move focus (exits editor).
+    // The global keydown guard ensures Escape doesn't also close the help modal here.
+    if (e.key === 'Escape') {
+      tabEscaped = true;
+      setStatus('Press Tab to navigate away · any other key to keep editing', 's-hint');
+      return;
+    }
+
+    // Any non-modifier key while armed → disarm
+    if (!['Tab','Shift','Control','Alt','Meta','Escape'].includes(e.key)) {
+      if (tabEscaped) { tabEscaped = false; setStatus('Ready', ''); }
+    }
+
+    // Tab / Shift+Tab
+    if (e.key === 'Tab') {
+      if (tabEscaped) {
+        tabEscaped = false; setStatus('Ready', '');
+        return; // do NOT preventDefault → browser moves focus
+      }
+      e.preventDefault();
+      if (e.shiftKey) {
+        const lineStart = ta.value.lastIndexOf('\n', s - 1) + 1;
+        const leading   = ta.value.slice(lineStart, lineStart + 2);
+        const cut = (leading === '  ') ? 2 : (leading[0] === ' ' ? 1 : 0);
+        if (cut) {
+          ta.value = ta.value.slice(0, lineStart) + ta.value.slice(lineStart + cut);
+          ta.selectionStart = ta.selectionEnd = Math.max(lineStart, s - cut);
+          renderContent(); syncCursor();
+        }
+      } else {
+        insSpace(ta, 2);
+        renderContent(); syncCursor();
+      }
+      return;
+    }
+
+    // Enter → carry forward current line's indentation
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const lineStart = ta.value.lastIndexOf('\n', s - 1) + 1;
+      const indent    = (ta.value.slice(lineStart, s).match(/^(\s*)/) || ['',''])[1];
+      const ins = '\n' + indent;
+      ta.value = ta.value.slice(0, s) + ins + ta.value.slice(end);
+      ta.selectionStart = ta.selectionEnd = s + ins.length;
+      renderContent();
+      requestAnimationFrame(() => { syncScroll(); syncCursor(); });
+      return;
+    }
+
+    // Auto-pair single quotes
+    // Smart: if cursor is already before a closing quote, jump over it.
+    // If no selection, insert '' and place cursor between them.
+    // If text is selected, wrap it in quotes.
+    if (e.key === "'") {
+      e.preventDefault();
+      if (s !== end) {
+        const sel = ta.value.slice(s, end);
+        ta.value = ta.value.slice(0, s) + "'" + sel + "'" + ta.value.slice(end);
+        ta.selectionStart = s + 1; ta.selectionEnd = end + 1;
+      } else if (ta.value[s] === "'") {
+        ta.selectionStart = ta.selectionEnd = s + 1; // jump over
+      } else {
+        ta.value = ta.value.slice(0, s) + "''" + ta.value.slice(s);
+        ta.selectionStart = ta.selectionEnd = s + 1;
+      }
+      renderContent(); syncCursor();
+      return;
+    }
+  });
+
+  renderContent(); syncCursor();
+  initSuggest(ta, () => { suggSuppress = true; });
+}
+
+function insSpace(ta, n) {
+  const s = ta.selectionStart;
+  ta.value = ta.value.slice(0,s) + ' '.repeat(n) + ta.value.slice(ta.selectionEnd);
+  ta.selectionStart = ta.selectionEnd = s + n;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  AUTOCOMPLETE
+// ═══════════════════════════════════════════════════════════
+const SUGG = { items: [], idx: -1, wordStart: 0, word: '' };
+let _mCtx; // canvas 2d context for sub-pixel text measurement
+
+const SQL_COMPLETIONS = [
+  'SELECT','FROM','WHERE','UPDATE','SET','INSERT','INTO','VALUES',
+  'DELETE','ALTER','TABLE','ADD','DROP','RENAME','COLUMN','DEFAULT',
+  'TO','AND','OR','LIKE','DESCRIBE','DESC','NOT','NULL'
+];
+
+// ── initSuggest: wire dismiss events ─────────────────────────
+function initSuggest(ta, onApply) {
+  SUGG._ta = ta;
+  SUGG._onApply = onApply;
+  // Dismiss on outside click
+  document.addEventListener('mousedown', e => {
+    const box = document.getElementById('sugg-box');
+    if (box && !box.contains(e.target) && e.target !== ta) hideSugg();
+  });
+}
+
+// ── Text width via canvas (matches textarea font exactly) ────
+function measTxt(text) {
+  if (!_mCtx) _mCtx = document.createElement('canvas').getContext('2d');
+  if (!_mCtx._ready) {
+    const ta = document.getElementById('ed-ta');
+    if (ta && ta.offsetWidth) {
+      const cs = getComputedStyle(ta);
+      _mCtx.font = `${cs.fontSize} ${cs.fontFamily}`;
+      _mCtx._ready = true;
+    }
+  }
+  return _mCtx.measureText(text).width;
+}
+
+// ── Build suggestion context from text + cursor position ─────
+function getSugg(text, pos) {
+  if (!pos || !Object.keys(S.lifecycles).length) return null;
+
+  // Don't suggest inside a string literal (odd number of ' before cursor on this line)
+  const lineStart = text.lastIndexOf('\n', pos - 1) + 1;
+  const beforeOnLine = text.slice(lineStart, pos);
+  if ((beforeOnLine.split("'").length - 1) % 2 !== 0) return null;
+
+  // Current word being typed (letters, digits, underscore, *)
+  const m = text.slice(0, pos).match(/[A-Za-z_]\w*$|[*]$/);
+  const word = m ? m[0] : '';
+  if (!word) return null;                     // need at least 1 char
+
+  const wordStart = pos - word.length;
+  // Everything before the word, trimmed, to determine SQL context
+  const ctx = text.slice(0, wordStart).replace(/\s+/g, ' ').trimEnd().toUpperCase();
+  const wu  = word.toUpperCase();
+
+  let items = [];
+
+  // ── Table context: after FROM / TABLE / UPDATE / INTO / DESCRIBE ──
+  const tableCtx = /(?:FROM|TABLE|UPDATE|INTO|DESCRIBE|DESC)\s*$/.test(ctx) ||
+                   /^(?:UPDATE|DESCRIBE|DESC)\s*$/.test(text.slice(0, wordStart).trimEnd().toUpperCase());
+  if (tableCtx) {
+    const tbls = Object.keys(S.lifecycles).filter(t => t.toUpperCase().startsWith(wu));
+    items = tbls.map(t => ({ label: t, kind: 'tbl' }));
+    if ('*'.startsWith(word)) items.push({ label: '*', kind: 'tbl' });
+  } else {
+    // ── Column context ──────────────────────────────────────────
+    const colSet = new Set(['_TC', '_FILE', '_LIFECYCLE']);
+    for (const lc of Object.values(S.lifecycles)) {
+      for (const f of lc.files) {
+        const rows = Array.isArray(f.data)
+          ? f.data
+          : Object.values(f.data).flatMap(tc => tc?.iterations || []);
+        if (rows.length) Object.keys(rows[0]).forEach(c => colSet.add(c));
+      }
+    }
+    const cols = [...colSet].filter(c => c.toUpperCase().startsWith(wu));
+
+    // ── Keyword context ─────────────────────────────────────────
+    const kws = SQL_COMPLETIONS.filter(k => k.startsWith(wu) && k !== wu);
+
+    // Merge: cols first (they're usually what the user wants), then keywords
+    const colItems = cols.map(c => ({ label: c, kind: 'col' }));
+    const kwItems  = kws.map(k => ({ label: k, kind: 'kw'  }));
+    items = [...colItems, ...kwItems];
+  }
+
+  if (!items.length) return null;
+  return { items: items.slice(0, 12), word, wordStart };
+}
+
+// ── Render + position the suggestion box ─────────────────────
+function showSugg(ta, ctx) {
+  const box = document.getElementById('sugg-box');
+  if (!ctx) { box.style.display = 'none'; return; }
+
+  SUGG.items = ctx.items;
+  SUGG.wordStart = ctx.wordStart;
+  SUGG.word = ctx.word;
+  SUGG.idx = -1;
+
+  // Build HTML
+  box.innerHTML = ctx.items.map((it, i) => {
+    const hi   = esc(it.label.slice(0, ctx.word.length));
+    const rest = esc(it.label.slice(ctx.word.length));
+    const badge = it.kind === 'tbl' ? 'TBL' : it.kind === 'kw' ? 'KW' : 'COL';
+    return `<div class="sugg-item" role="option" data-i="${i}">
+      <span class="sugg-badge sb-${it.kind}">${badge}</span>
+      <span class="sugg-label"><span class="sugg-hi">${hi}</span>${rest}</span>
+    </div>`;
+  }).join('') +
+  `<div class="sugg-footer"><span>↑↓ navigate</span><span>Tab / Enter = accept</span></div>`;
+
+  // Calculate pixel position of cursor (start of current word)
+  const rect = ta.getBoundingClientRect();
+  const before = ta.value.slice(0, ctx.wordStart);
+  const lineIdx = before.split('\n').length - 1;
+  const lineText = before.slice(before.lastIndexOf('\n') + 1); // text on current line up to word
+  const cx = rect.left + 12 + measTxt(lineText) - ta.scrollLeft;
+  const cy = rect.top  + 10 + lineIdx * 19.8    - ta.scrollTop;
+
+  // Clamp horizontally, flip vertically if near bottom
+  const boxH = Math.min(ctx.items.length * 29 + 26, 230);
+  let left = Math.min(cx, window.innerWidth  - 220);
+  let top  = cy + 22; // below the current line
+  if (top + boxH > window.innerHeight - 8) top = cy - boxH; // flip up
+
+  box.style.left    = Math.max(4, left) + 'px';
+  box.style.top     = top + 'px';
+  box.style.display = 'flex';
+  box.style.flexDirection = 'column';
+
+  // Accept on click (mousedown so it fires before blur)
+  box.querySelectorAll('.sugg-item').forEach(el => {
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      applySugg(ta, ctx.items[+el.dataset.i].label);
+    });
+  });
+}
+
+function hideSugg() {
+  const box = document.getElementById('sugg-box');
+  if (box) box.style.display = 'none';
+  SUGG.idx = -1;
+}
+
+// ── Apply selected suggestion ─────────────────────────────────
+function applySugg(ta, label) {
+  const ws = SUGG.wordStart;
+  ta.value = ta.value.slice(0, ws) + label + ta.value.slice(ta.selectionStart);
+  ta.selectionStart = ta.selectionEnd = ws + label.length;
+  hideSugg();
+  if (SUGG._onApply) SUGG._onApply(); // set suggSuppress before input fires
+  ta.dispatchEvent(new Event('input'));
+  ta.focus();
+}
+
+// ── Keyboard navigation within suggestion list ────────────────
+function navSugg(dir) {
+  const n = SUGG.items.length;
+  if (!n) return;
+  let idx = SUGG.idx + dir;
+  if (idx < 0)  idx = n - 1;
+  if (idx >= n) idx = 0;
+  SUGG.idx = idx;
+  document.querySelectorAll('#sugg-box .sugg-item').forEach((el, i) => {
+    el.classList.toggle('on', i === idx);
+    if (i === idx) el.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+function hlSQL(text) {
+  return text.split('\n').map(line => {
+    if (/^\s*--/.test(line)) return `<span class="cmt">${esc(line)}</span>`;
+    let out = '', rem = line;
+    while (rem.length) {
+      let m;
+      if ((m = rem.match(/^('[^']*'|"[^"]*")/)))   { out += `<span class="str">${esc(m[0])}</span>`; rem=rem.slice(m[0].length); continue; }
+      if (rem[0] === '*')                           { out += `<span class="wc">*</span>`;              rem=rem.slice(1); continue; }
+      if ((m = rem.match(/^(\d+(?:\.\d+)?)/)))     { out += `<span class="num">${m[0]}</span>`;       rem=rem.slice(m[0].length); continue; }
+      if ((m = rem.match(/^([A-Za-z_]\w*)/)))      {
+        const cls = SQL_KW.has(m[0].toUpperCase()) ? 'kw' : 'id';
+        out += `<span class="${cls}">${esc(m[0])}</span>`; rem=rem.slice(m[0].length); continue;
+      }
+      if ((m = rem.match(/^(!=|<>|>=|<=|[=<>])/))){ out += `<span class="op">${esc(m[0])}</span>`;   rem=rem.slice(m[0].length); continue; }
+      out += esc(rem[0]); rem=rem.slice(1);
+    }
+    return out;
+  }).join('\n') + '\n';
+}
+
+function getEditor() { return document.getElementById('ed-ta').value; }
+function setEditor(v) { const ta = document.getElementById('ed-ta'); ta.value=v; ta.dispatchEvent(new Event('input')); ta.focus(); }
+function clearEditor() { setEditor(''); setStatus('Ready',''); }
+
+function insertAtCursor(txt) {
+  const ta = document.getElementById('ed-ta');
+  const s  = ta.selectionStart;
+  ta.value = ta.value.slice(0,s) + txt + ta.value.slice(ta.selectionEnd);
+  ta.selectionStart = ta.selectionEnd = s + txt.length;
+  ta.dispatchEvent(new Event('input')); ta.focus();
+}
+
+function formatQuery() {
+  const KW = ['SELECT','FROM','WHERE','UPDATE','SET','INSERT INTO','DELETE FROM',
+    'ALTER TABLE','ADD COLUMN','DROP COLUMN','RENAME COLUMN','TO','DEFAULT','AND','OR','LIKE','DESCRIBE','VALUES'];
+  let q = getEditor().trim();
+  for (const k of KW) q = q.replace(new RegExp(`\\b${k}\\b`,'gi'), k);
+  setEditor(q);
+}
+
+function setStatus(msg, cls) {
+  const e = document.getElementById('st-msg');
+  e.textContent = msg; e.className = cls || '';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════════════════════
+function initTabs() {
+  document.querySelectorAll('.res-tabs .tab').forEach(t => {
+    t.addEventListener('click', () => switchTab(t.dataset.tab));
+  });
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.res-tabs .tab').forEach(t => t.classList.toggle('on', t.dataset.tab===name));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('on', p.id===`tab-${name}`));
+  if (name === 'hist') renderHistory();
+  if (name === 'json' && S.activeLC) renderJsonView(S.activeLC);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RESIZERS
+// ═══════════════════════════════════════════════════════════
+function initResizers() {
+  drag(document.getElementById('v-resize'), (dx) => {
+    const sb = document.querySelector('.sidebar');
+    sb.style.width = Math.max(160, Math.min(380, sb.offsetWidth + dx)) + 'px';
+  });
+  drag(document.getElementById('h-resize'), (_, dy) => {
+    const ep = document.getElementById('ed-panel');
+    ep.style.height = Math.max(90, Math.min(500, ep.offsetHeight + dy)) + 'px';
+  });
+}
+
+function drag(handle, cb) {
+  handle.addEventListener('mousedown', e => {
+    e.preventDefault();
+    const x0 = e.clientX, y0 = e.clientY;
+    handle.classList.add('drag');
+    const mm = e2 => cb(e2.clientX - x0, e2.clientY - y0);
+    const mu = () => { handle.classList.remove('drag'); document.removeEventListener('mousemove',mm); document.removeEventListener('mouseup',mu); };
+    document.addEventListener('mousemove', mm);
+    document.addEventListener('mouseup',   mu);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════════════════════
+function modal(show) { document.getElementById('modal-help').style.display = show ? 'flex' : 'none'; }
+
+// ═══════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function el(tag, props={}) { const n=document.createElement(tag); Object.assign(n,props); return n; }
+
+let _tt;
+function toast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast show ${type}`;
+  clearTimeout(_tt); _tt = setTimeout(() => t.classList.remove('show'), 3200);
+}
+</script>
+</body>
+</html>
