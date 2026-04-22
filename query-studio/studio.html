@@ -415,7 +415,7 @@ kbd{background:var(--surface2);border:1px solid var(--border);border-radius:3px;
         <div class="ed-status">
           <span id="st-msg" role="status" aria-live="polite">Ready</span>
           <span id="ed-lc" class="ed-lc" aria-live="off" aria-label="Cursor position">Ln 1, Col 1</span>
-          <span id="ed-kbhint" class="status-hint">Ctrl+Enter · Tab=indent · Esc→Tab=exit · Ctrl+L=clear</span>
+          <span id="ed-kbhint" class="status-hint">Ctrl+Enter=run (selection or all) · Tab=indent · Esc→Tab=exit · Ctrl+L=clear</span>
         </div>
       </div>
 
@@ -513,7 +513,7 @@ AND  OR   (left-to-right, can filter on _TC and _FILE too)</pre>
       </div>
       <div><p class="h4">Shortcuts</p>
         <table class="h-tbl">
-          <tr><td><kbd>Ctrl+Enter</kbd></td><td>Execute query</td></tr>
+          <tr><td><kbd>Ctrl+Enter</kbd></td><td>Execute selected query (or full editor if nothing selected)</td></tr>
           <tr><td><kbd>Tab</kbd></td><td>Insert 2 spaces</td></tr>
           <tr><td><kbd>Ctrl+L</kbd></td><td>Clear editor</td></tr>
         </table>
@@ -958,11 +958,14 @@ function evalCond(row, c) {
 //  QUERY RUNNER
 // ═══════════════════════════════════════════════════════════
 async function runQuery() {
-  const q = getEditor().trim();
+  const ta  = document.getElementById('ed-ta');
+  const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd).trim();
+  const q   = (sel || ta.value).trim();
+  const fromSel = !!sel;
   if (!q || q.startsWith('--')) { setStatus('Write a query first',''); return; }
   if (!Object.keys(S.lifecycles).length) { toast('Open a folder first','err'); return; }
 
-  setStatus('Executing…','');
+  setStatus(fromSel ? 'Executing selection…' : 'Executing…', '');
   const t0 = Date.now();
 
   try {
@@ -986,8 +989,8 @@ async function runQuery() {
 
     showGrid(res);
     document.getElementById('res-info').textContent =
-      `${res.rowsAffected} row${res.rowsAffected!==1?'s':''} · ${parsed.type} · ${ms}ms${mut?' · ✓ Saved':''}`;
-    setStatus(`${res.rowsAffected} row(s) · ${ms}ms${mut?' · Saved ✓':''}`, mut ? 's-mut' : 's-ok');
+      `${res.rowsAffected} row${res.rowsAffected!==1?'s':''} · ${parsed.type} · ${ms}ms${fromSel?' · selection':''}${mut?' · ✓ Saved':''}`;
+    setStatus(`${res.rowsAffected} row(s) · ${ms}ms${fromSel?' · selection':''}${mut?' · Saved ✓':''}`, mut ? 's-mut' : 's-ok');
     addHistory(q, { ok:true, rowsAffected:res.rowsAffected, ms, mut });
     if (mut) {
       toast(res.msg || `Changes saved`, 'ok');
@@ -1876,6 +1879,11 @@ function hlSQL(text) {
 }
 
 function getEditor() { return document.getElementById('ed-ta').value; }
+function getActiveQuery() {
+  const ta = document.getElementById('ed-ta');
+  const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd).trim();
+  return sel || ta.value;
+}
 function setEditor(v) { const ta = document.getElementById('ed-ta'); ta.value=v; ta.dispatchEvent(new Event('input')); ta.focus(); }
 function clearEditor() { setEditor(''); setStatus('Ready',''); }
 
