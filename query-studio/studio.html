@@ -1072,14 +1072,21 @@ async function execInsert(p, lcNames) {
   const tcid = cleanVals.TCID || null;
   const dirty = new Set();
 
-  // Infer full column schema from existing rows so every column is present
-  const schemaRow = getRows(lc)[0] || null;
-  const schemaKeys = schemaRow
-    ? Object.keys(schemaRow).filter(k => k !== META && !['_TC','_FILE','_LIFECYCLE'].includes(k))
-    : [];
+  // Build schema as UNION of all column names across every existing row in this lifecycle
+  const SKIP = new Set(['_TC', '_FILE', '_LIFECYCLE']);
+  const schemaKeys = [];
+  const seen = new Set();
+  for (const r of getRows(lc)) {
+    for (const k of Object.keys(r)) {
+      if (k === META || SKIP.has(k) || seen.has(k)) continue;
+      schemaKeys.push(k);
+      seen.add(k);
+    }
+  }
+  // Build the new row: all known columns default to '', overwrite with user-supplied values
   const fullRow = {};
-  for (const k of schemaKeys) fullRow[k] = '';   // default all to ''
-  Object.assign(fullRow, cleanVals);              // overwrite with user-supplied values
+  for (const k of schemaKeys) fullRow[k] = '';
+  Object.assign(fullRow, cleanVals);
 
   // Find file that already has this TCID as a TC key
   let tgtFile = null, tgtTcKey = tcid;
