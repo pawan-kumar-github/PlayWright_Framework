@@ -206,7 +206,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 
 /* ── Data grid ───────────────────────────────────────────── */
 .grid-wrap{flex:1;overflow:auto}
-.dgrid{width:100%;border-collapse:collapse;font-size:12px;font-family:var(--mono)}
+.dgrid{width:max-content;min-width:100%;border-collapse:collapse;font-size:12px;font-family:var(--mono)}
 .dgrid thead th{position:sticky;top:0;z-index:10;background:var(--surface);
   border:1px solid var(--border);padding:6px 14px;text-align:left;font-weight:700;
   font-size:11px;color:var(--accent);white-space:nowrap;letter-spacing:.04em;
@@ -215,7 +215,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);fon
 .dgrid thead th.sa::after{content:" ↑";color:var(--yellow)}
 .dgrid thead th.sd::after{content:" ↓";color:var(--yellow)}
 .dgrid tbody td{border:1px solid var(--border);padding:5px 14px;color:var(--text);
-  max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dgrid tbody tr:hover td{background:rgba(203,166,247,.06)}
 .dgrid tbody tr:nth-child(even) td{background:rgba(255,255,255,.02)}
 .dgrid tbody tr:hover:nth-child(even) td{background:rgba(203,166,247,.06)}
@@ -1344,7 +1344,20 @@ function showGrid(res) {
 
 function buildGrid(cols, rows, tbl) {
   S.sortCol = null;
-  let html = '<thead><tr>';
+
+  // Dynamic column widths: max of header length vs longest cell value, clamped to [80, 400]px
+  const CH = 7.5; // px per character at 12px monospace
+  const PAD = 28; // horizontal padding (14px each side)
+  const MIN_W = 80, MAX_W = 400;
+  const colWidths = cols.map(c => {
+    let maxLen = c.length;
+    for (const r of rows) maxLen = Math.max(maxLen, String(r[c] ?? '').length);
+    return Math.min(Math.max(Math.ceil(maxLen * CH) + PAD, MIN_W), MAX_W);
+  });
+
+  let html = '<colgroup>';
+  for (const w of colWidths) html += `<col style="width:${w}px;min-width:${w}px">`;
+  html += '</colgroup><thead><tr>';
   for (const c of cols) html += `<th data-col="${esc(c)}">${esc(c)}</th>`;
   html += '</tr></thead><tbody>';
   for (const r of rows) {
